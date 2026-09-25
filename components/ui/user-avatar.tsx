@@ -20,10 +20,14 @@ import { Avatar, AvatarImage,AvatarFallback } from "./avatar"
 export default function UserAvatar() {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="rounded-full"><Avatar>
+      <DropdownMenuTrigger 
+      render={
+      <Button variant="ghost" size="icon" className="rounded-full"><Avatar>
           <AvatarImage src="https://github.com/shadcn.png" alt="shadcn" />
           <AvatarFallback>LR</AvatarFallback>
-        </Avatar></Button>} />
+        </Avatar>
+        </Button>  
+    } />
       <DropdownMenuContent>
         <DropdownMenuItem>
           <UserIcon />

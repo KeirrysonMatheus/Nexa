@@ -1,38 +1,46 @@
-'use client'
-import { Button } from "./button"
-import Link from "next/link"
-import { Field } from "./field"
-import { Input } from "./input"
-import { useState } from "react"
-import { Search } from "lucide-react"
-import { Spinner } from "./spinner"
-const FilterPost = () => {
-const [busca,setBusca] = useState<string>("")
-const [loading,setLoading] = useState(false)
-  return(
-    <>
-        <Field>
-          <Input
-           placeholder="Pesquisar usuários,posts..."
-           required
-           onChange={e => setBusca(e.target.value)}
-           />
-        </Field>
+"use client";
 
-    {loading ? (
-        <Button disabled variant="link">
-          <Link href={`/busca?termo=${busca}`}>
-            <Spinner className="text-foreground size-4"/>
-          </Link>
-        </Button>
-    ):(
-        <Button onClick={() => setLoading(true)} variant="link">
-          <Link href={`/busca?termo=${busca}`}>
-            <Search className="text-foreground"/>
-          </Link>
-        </Button>
-    ) }
-        </>
-  )
-}
-export default FilterPost
+import { Button } from "./button";
+import { Field } from "./field";
+import { Input } from "./input";
+import { useState } from "react";
+import { Search } from "lucide-react";
+import { Spinner } from "./spinner";
+import { useRouter } from "next/navigation";
+
+const FilterPost = () => {
+  const [busca, setBusca] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!busca.trim()) return;
+
+    setLoading(true);
+    router.push(`/busca?termo=${encodeURIComponent(busca)}`);
+  };
+
+  return (
+    <form onSubmit={handleSearch} className="flex items-center gap-2">
+      <Field>
+        <Input
+          placeholder="Pesquisar usuários, posts..."
+          required
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+        />
+      </Field>
+
+      <Button type="submit" disabled={loading} variant={loading ? "ghost" : "link"}>
+        {loading ? (
+          <Spinner className="text-foreground size-4" />
+        ) : (
+          <Search className="text-foreground" />
+        )}
+      </Button>
+    </form>
+  );
+};
+
+export default FilterPost;
