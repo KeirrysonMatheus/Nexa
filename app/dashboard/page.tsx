@@ -1,10 +1,11 @@
 import Header from "@/components/header"
+import { Posts } from "@/components/posts";
 export default function Dashboard() {
   return (
-    <div className="flex min-h-dvh w-full">
+      <div className="min-h-dvh w-full">
           <Header/>
           <main>
-            
+            <Posts/>
           </main>
         </div>
   );

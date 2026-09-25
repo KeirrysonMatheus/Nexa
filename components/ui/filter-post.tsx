@@ -22,7 +22,7 @@ const FilterPost = () => {
   };
 
   return (
-    <form onSubmit={handleSearch} className="flex items-center gap-2">
+    <form onSubmit={handleSearch} className="bg-background flex items-center gap-2">
       <Field>
         <Input
           placeholder="Pesquisar usuários, posts..."
