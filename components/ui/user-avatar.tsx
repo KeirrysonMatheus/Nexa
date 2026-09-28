@@ -35,13 +35,11 @@ export default function UserAvatar() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
-        <Button variant="ghost" size="icon" className="rounded-full">
+      <DropdownMenuTrigger className="rounded-full">
           <Avatar>
             <AvatarImage src={user.image || undefined} alt={user.name} />
             <AvatarFallback>{getInitials(user.name || "U")}</AvatarFallback>
           </Avatar>
-        </Button>
       </DropdownMenuTrigger>
       
       <DropdownMenuContent align="end" className="w-56">
