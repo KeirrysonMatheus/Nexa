@@ -4,7 +4,6 @@ import Header from "@/components/header";
 import { Posts } from "@/components/posts";
 import SkeletonCard from "@/components/skeleton-card";
 
-
 const PostsSkeleton = () => (
   <div className="w-full max-w-xl flex flex-col gap-4">
     <SkeletonCard />

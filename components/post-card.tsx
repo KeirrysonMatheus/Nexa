@@ -1,11 +1,12 @@
-"use client"
+"use client";
 
-import React, { useTransition } from "react";
+import React, { useTransition, useState, useEffect } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, Share2, Bookmark } from "lucide-react";
+import { Heart, Share2, Bookmark } from "lucide-react";
 import { toggleCurtidaPost } from "@/actions/posts";
+import { authClient } from "@/lib/auth-client"; 
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
@@ -16,21 +17,14 @@ interface PostCardProps {
   post_conteudo: string;
   post_image_url?: string;
   post_data: Date;
+  post_comentarios:string;
   post_ncurtidas: number;
-  currentUserId: string;
   user: {
     name: string;
     email: string;
     image: string | null;
     user_apelido: string;
   };
-  post_comentarios: {
-    post_id: string;
-    user_id: string;
-    comentario_id: string;
-    comentario: string;
-    criado_em: Date | null;
-  }[];
   postCurtidas: {
     post_id: string;
     user_id: string;
@@ -51,20 +45,29 @@ const PostCard = ({
   post_ncurtidas,
   post_comentarios,
   postCurtidas,
-  currentUserId
 }: PostCardProps) => {
   const [isPending, startTransition] = useTransition();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
-  const jaCurtiu = postCurtidas.some(curtida => curtida.user_id === currentUserId);
+  const { data: session } = authClient.useSession();
+  const currentUserId = session?.user?.id || "";
+
+  const jaCurtiu = mounted && postCurtidas.some(curtida => curtida.user_id === currentUserId);
 
   const handleLike = () => {
+    if (!mounted) return;
+
     if (!currentUserId) {
       alert("Você precisa estar logado para curtir!");
       return;
     }
     
     startTransition(async () => {
-      await toggleCurtidaPost(post_id, currentUserId);
+      await toggleCurtidaPost(post_id); 
     });
   };
 
@@ -154,11 +157,6 @@ const PostCard = ({
           >
             <Heart className={cn("h-4 w-4", jaCurtiu && "fill-current")} />
             <span className="text-xs font-medium">{post_ncurtidas}</span>
-          </Button>
-
-          <Button variant="ghost" size="sm" className="h-9 px-3 gap-2 text-muted-foreground hover:text-blue-500 hover:bg-blue-50/10 dark:hover:bg-blue-950/20 rounded-full transition-colors">
-            <MessageCircle className="h-4 w-4" />
-            <span className="text-xs font-medium">{post_comentarios.length}</span>
           </Button>
         </div>
 

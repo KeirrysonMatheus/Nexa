@@ -1,6 +1,7 @@
 import { prisma } from "@/app/client";
 import { PostCard } from "../components/post-card";
 import { unstable_cache } from "next/cache";
+
 const getCachedPosts = unstable_cache(
   async () => {
     return await prisma.post.findMany({
@@ -19,10 +20,7 @@ const getCachedPosts = unstable_cache(
 );
 
 const Posts = async () => {
-  const currentUserId = ""; 
-
   const posts = await getCachedPosts();
-
   if (posts.length < 1) {
     return <p className="text-gray-500">Nenhum post encontrado.</p>;
   }
@@ -39,9 +37,8 @@ const Posts = async () => {
           post_data={post.post_data}
           post_ncurtidas={post.post_ncurtidas}
           user={post.user}
-          post_comentarios={post.post_comentarios}
+          post_comentarios={post.post_comentarios.map((comentario) => comentario.comentario).join("\n")}
           postCurtidas={post.postCurtidas}
-          currentUserId={currentUserId}
         />
       ))}
     </div>

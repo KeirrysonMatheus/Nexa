@@ -3,7 +3,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 const SkeletonCard = () => {
   return (
-    <Card className='w-full max-w-md mb-4'>
+    <Card className='mx-auto w-full max-w-md mb-4'>
       <CardHeader className='flex items-center gap-4'>
         <Skeleton className='size-12 rounded-full' />
         <div className='space-y-2'>
