@@ -8,6 +8,7 @@
 !.yarn/releases
 !.yarn/versions
 
+
 # testing
 /coverage
 
@@ -36,3 +37,6 @@ pnpm-debug.log*
 next-env.d.ts
 
 /lib/generated/prisma
+.agents/
+.claude/
+.windsurf/
