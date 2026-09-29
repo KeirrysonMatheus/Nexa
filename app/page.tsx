@@ -1,5 +1,6 @@
 import { LoginForm } from "@/components/login-form"
-export const metadata = {
+import type { Metadata } from "next"
+export const metadata: Metadata = {
   title: 'Login - Nexa',
   description: 'Faça login para acessar sua área exclusiva e gerenciar seus serviços.',
   robots: 'noindex, follow'

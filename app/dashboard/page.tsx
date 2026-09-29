@@ -3,6 +3,12 @@ import MobileNavBar from "@/components/mobile-navbar";
 import Header from "@/components/header";
 import { Posts } from "@/components/posts";
 import SkeletonCard from "@/components/skeleton-card";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title:"Dashboard - Nexa",
+  description:"Crie, comente e reaja a posts"
+}
 
 const PostsSkeleton = () => (
   <div className="w-full max-w-xl flex flex-col gap-4">

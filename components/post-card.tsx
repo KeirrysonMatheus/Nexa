@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useTransition, useState, useEffect } from "react";
+import  { useTransition, useState, useEffect } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -87,8 +87,8 @@ const PostCard = ({
                     src={user.image}
                     alt={`Avatar de ${user.name}`}
                     fill
+                    priority
                     className="object-cover"
-                    unoptimized
                   />
                 </div>
               ) : (
@@ -129,7 +129,7 @@ const PostCard = ({
             <Image
               alt={post_titulo}
               src={post_image_url}
-              unoptimized
+              loading="eager"
               fill
               className="object-cover"
             />

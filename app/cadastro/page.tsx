@@ -1,12 +1,11 @@
-"use client"
-
+import type { Metadata } from "next"
 import { SignupForm } from "@/components/signup-form"
 import { GalleryVerticalEndIcon } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Cadastro - Nexa.',
-  description: 'Crie sua conta na Nexa. e comece a gerenciar seus projetos hoje mesmo.',
+  description: 'Crie sua conta na Nexa e comece a postar hoje mesmo.',
 }
 
 export default function SignupPage() {
@@ -33,11 +32,10 @@ export default function SignupPage() {
       <div className="relative hidden bg-muted lg:block" aria-hidden="true">
         
         <Image 
-          src="/placeholder.svg" 
+          src="" 
           alt="Ilustração de fundo para a página de cadastro" 
+          priority
           fill
-          unoptimized
-          priority 
           className="object-cover dark:brightness-[0.2] dark:grayscale"
         />
       </div>
