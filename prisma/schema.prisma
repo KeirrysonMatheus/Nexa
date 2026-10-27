@@ -8,6 +8,30 @@ datasource db {
   provider = "postgresql"
 }
 
+model user {
+  id                  String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                String             @db.VarChar(100)
+  email               String             @unique @db.VarChar(100)
+  emailVerified       Boolean            @default(false)
+  image               String?            @db.VarChar(512)
+  createdAt           DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt           DateTime           @updatedAt @db.Timestamptz(6)
+  user_datanascimento DateTime           @db.Date
+  user_apelido        String             @unique @db.VarChar(100)
+  user_bio            String?            @db.VarChar(300)
+  user_genero         String?            @db.VarChar(20)
+  user_fone           String?            @unique @db.VarChar(18)
+  user_nseguidores    Int                @default(0)
+  user_nseguindo      Int                @default(0)
+  account             account[]
+  post                post[]
+  post_comentarios    post_comentarios[]
+  session             session[]
+  postCurtidas        post_curtidas[]
+  seguidos            seguidores[]       @relation("UsuarioSeguido")
+  seguidores          seguidores[]       @relation("UsuarioSeguidor")
+}
+
 model account {
   id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   accountId             String
@@ -21,16 +45,41 @@ model account {
   scope                 String?
   password              String?
   createdAt             DateTime  @default(now())
-  updatedAt             DateTime
+  updatedAt             DateTime  @updatedAt
   user                  user      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
 
+model session {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String   @db.Uuid
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model verification {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
 model post {
   post_id          String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   post_data        DateTime           @default(now()) @db.Timestamptz(6)
-  post_img_url     String?            @db.VarChar(512)
+  post_image_path  String?            @db.VarChar(512)
   post_titulo      String             @db.VarChar(300)
   post_conteudo    String             @db.VarChar(5000)
   post_ncurtidas   Int                @default(0)
@@ -64,49 +113,13 @@ model post_comentarios {
   @@index([user_id], map: "idx_comentarios_usuario")
 }
 
-model session {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  expiresAt DateTime
-  token     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime
-  ipAddress String?
-  userAgent String?
-  userId    String   @db.Uuid
-  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model seguidores {
+  seguidor_id String @db.Uuid
+  seguido_id  String @db.Uuid
 
-  @@index([userId])
-}
+  seguidor user @relation("UsuarioSeguidor", fields: [seguidor_id], references: [id], onDelete: Cascade)
+  seguido  user @relation("UsuarioSeguido", fields: [seguido_id], references: [id], onDelete: Cascade)
 
-model user {
-  id                  String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name                String             @db.VarChar(100)
-  email               String             @unique @db.VarChar(100)
-  emailVerified       Boolean            @default(false)
-  image               String?            @db.VarChar(512)
-  createdAt           DateTime           @default(now()) @db.Timestamptz(6)
-  updatedAt           DateTime           @db.Timestamptz(6)
-  user_datanascimento DateTime           @db.Date
-  user_apelido        String             @unique @db.VarChar(100)
-  user_bio            String?            @db.VarChar(300)
-  user_genero         String?            @db.VarChar(20)
-  user_fone           String?            @unique @db.VarChar(18)
-  user_nseguidores    Int                @default(0)
-  user_nseguindo      Int                @default(0)
-  account             account[]
-  post                post[]
-  post_comentarios    post_comentarios[]
-  session             session[]
-  postCurtidas        post_curtidas[]
-}
-
-model verification {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  identifier String
-  value      String
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime
-
-  @@index([identifier])
+  @@id([seguidor_id, seguido_id])
+  @@index([seguido_id])
 }

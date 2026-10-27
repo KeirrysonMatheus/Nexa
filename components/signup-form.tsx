@@ -212,7 +212,13 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"form">
             Cadastre-se com Google
           </Button>
           <FieldDescription className="px-6 text-center mt-2">
-            Já tem uma conta? <a href="/login" className="underline context-link hover:text-primary">Faça login</a>
+            Já tem uma conta?{" "}
+            <a
+              href="/authenticate/login"
+              className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
+            >
+              Faça login
+            </a>
           </FieldDescription>
         </Field>
       </FieldGroup>

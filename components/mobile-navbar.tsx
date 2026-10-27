@@ -1,26 +1,53 @@
-import { Home,Search,MessageCircle } from "lucide-react"
-const MobileNavBar = () => {
-  return(
-    <div className="md:hidden w-full fixed bottom-0">
-      <nav className="bg-background p-4 rounded-b-md mx-auto items-center flex flex-row gap-5 justify-center border-t border-border">
-        <div>
-          <button className="cursor-pointer">
-          <Home size={20} />
-          </button>
-          </div>
-        <div>
-          <button className="cursor-pointer">
-          <Search size={20}/>
-          </button>
-          </div>
-        <div>
-          <button className="cursor-pointer">
-          <MessageCircle size={20}/>
-          </button>
-          </div>
+"use client"
 
-      </nav>
-    </div>
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { Home, Search, UserRound } from "lucide-react"
+import { authClient } from "@/lib/auth-client"
+import { cn } from "@/lib/utils"
+
+const MobileNavBar = () => {
+  const pathname = usePathname()
+  const { data: session } = authClient.useSession()
+  const profileHref = session?.user?.user_apelido
+    ? `/users/${session.user.user_apelido}`
+    : "/authenticate/login"
+
+  const items = [
+    { href: "/dashboard", label: "Início", icon: Home },
+    { href: "/busca", label: "Buscar", icon: Search },
+    { href: profileHref, label: "Perfil", icon: UserRound },
+  ]
+
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border/70 bg-background/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
+      <ul className="mx-auto flex h-14 max-w-lg items-center justify-around px-2">
+        {items.map(({ href, label, icon: Icon }) => {
+          const active =
+            href === "/dashboard"
+              ? pathname === "/dashboard"
+              : pathname.startsWith(href)
+
+          return (
+            <li key={label}>
+              <Link
+                href={href}
+                className={cn(
+                  "flex min-w-16 flex-col items-center gap-1 rounded-lg px-3 py-1.5 text-[11px] font-medium transition-colors",
+                  active
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Icon className={cn("size-5", active && "stroke-[2.25px]")} />
+                {label}
+              </Link>
+            </li>
+          )
+        })}
+      </ul>
+    </nav>
   )
 }
+
 export default MobileNavBar

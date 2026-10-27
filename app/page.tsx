@@ -1,20 +1,5 @@
-import { LoginForm } from "@/components/login-form"
-import type { Metadata } from "next"
-export const metadata: Metadata = {
-  title: 'Login - Nexa',
-  description: 'Faça login para acessar sua área exclusiva e gerenciar seus serviços.',
-  robots: 'noindex, follow'
-}
+import { redirect } from "next/navigation"
 
-export default function LoginPage() {
-  return (
-
-    <main className="flex min-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10">
-      <div className="w-full max-w-sm md:max-w-4xl">
-        <h1 className="sr-only">Acesse sua conta</h1>
-        
-        <LoginForm />
-      </div>
-    </main>
-  )
+export default function HomePage() {
+  redirect("/authenticate/login")
 }
