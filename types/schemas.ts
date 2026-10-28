@@ -7,7 +7,11 @@ export const LoginFormSchema = z.object({
 
 export const signUpFormSchema = z.object({
   name: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres." }),
-  nickname: z.string().min(2, { message: "O apelido deve ter pelo menos 2 caracteres." }),
+  nickname: z.string()
+    .trim()
+    .min(3, { message: "O apelido deve ter pelo menos 3 caracteres." })
+    .max(100, { message: "O apelido deve ter no máximo 100 caracteres." })
+    .regex(/^[a-zA-Z0-9_]+$/, { message: "O apelido deve conter apenas letras, números e underscore." }),
   email: z.string().trim().email({ message: "Insira um e-mail válido." }),
   password: z.string().min(6, { message: "A senha deve ter pelo menos 6 caracteres." }),
   confirmPassword: z.string(),
