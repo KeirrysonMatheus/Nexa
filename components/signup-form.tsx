@@ -34,13 +34,12 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"form">
   setIsLoading(true)
   setGlobalError(null)
 
-  
   const { data, error: authError } = await authClient.signUp.email({
-    email: values.email,
+    email: values.email.trim(),
     password: values.password,
-    name: values.name,
-    user_apelido: values.nickname, 
-    user_datanascimento: new Date(values.user_datanascimento), 
+    name: values.name.trim(),
+    user_apelido: values.nickname.trim(),
+    user_datanascimento: new Date(values.user_datanascimento.trim()),
   })
   
   setIsLoading(false)
