@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto"
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024
 const MAX_PROFILE_IMAGE_SIZE = 2 * 1024 * 1024
+const blobToken = process.env.BLOB_PUBLIC_READ_WRITE_TOKEN
 const MIME_EXTENSIONS: Record<string, string> = {
   "image/jpeg": ".jpg",
   "image/png": ".png",
@@ -34,11 +35,12 @@ export async function saveImageFile(
 
   const filename = `${randomUUID()}${extension}`
 
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
+  if (blobToken) {
     const blob = await put(`images/${folder}/${filename}`, file, {
       access: "public",
       addRandomSuffix: false,
       contentType: file.type,
+      token: blobToken,
     })
 
     return blob.url
@@ -60,7 +62,7 @@ export async function removeStoredFile(filePath: string | null | undefined) {
   if (!filePath) return
 
   if (filePath.startsWith("https://")) {
-    await del(filePath).catch(() => undefined)
+    await del(filePath, { token: blobToken }).catch(() => undefined)
     return
   }
 
