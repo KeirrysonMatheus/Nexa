@@ -49,11 +49,13 @@ export async function PUT(request: Request) {
   }
 
   let imagePath = currentUser.image
+  let uploadedImagePath: string | null = null
 
   try {
-    imagePath = image instanceof File && image.size > 0
-      ? await saveImageFile(image, "users", 2 * 1024 * 1024)
-      : currentUser.image
+    if (image instanceof File && image.size > 0) {
+      uploadedImagePath = await saveImageFile(image, "users", 2 * 1024 * 1024)
+      imagePath = uploadedImagePath
+    }
 
     const user = await prisma.user.update({
       where: { id: session.user.id },
@@ -79,9 +81,11 @@ export async function PUT(request: Request) {
     const response: ProfileResponse = user
     return NextResponse.json(response)
   } catch (error: unknown) {
-    if (imagePath !== currentUser.image) {
-      await removeStoredFile(imagePath)
+    if (uploadedImagePath) {
+      await removeStoredFile(uploadedImagePath)
     }
+
+    console.error("Erro ao atualizar perfil:", error)
 
     const isUniqueError =
       typeof error === "object" &&
@@ -92,12 +96,21 @@ export async function PUT(request: Request) {
     const isImageError =
       error instanceof Error &&
       (error.message.includes("imagem") || error.message.includes("Formato"))
+
+    const errorMessage = error instanceof Error ? error.message : ""
+    const isBlobError =
+      errorMessage.includes("BLOB") ||
+      errorMessage.includes("blob") ||
+      errorMessage.includes("token")
+
     return NextResponse.json(
       {
         error: isImageError
           ? error.message
           : isUniqueError
             ? "Esse apelido já está em uso."
+            : isBlobError
+              ? "O armazenamento de imagens não está configurado corretamente."
             : "Não foi possível atualizar o perfil.",
       },
       { status: isImageError ? 400 : isUniqueError ? 409 : 500 }
