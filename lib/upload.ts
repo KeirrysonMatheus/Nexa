@@ -1,3 +1,4 @@
+import { del, put } from "@vercel/blob"
 import { mkdir, unlink, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { randomUUID } from "node:crypto"
@@ -31,11 +32,22 @@ export async function saveImageFile(
     throw new Error("A imagem de perfil deve ter no máximo 2 MB.")
   }
 
+  const filename = `${randomUUID()}${extension}`
+
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const blob = await put(`images/${folder}/${filename}`, file, {
+      access: "public",
+      addRandomSuffix: false,
+      contentType: file.type,
+    })
+
+    return blob.url
+  }
+
   const relativeDirectory = path.join("images", folder)
   const absoluteDirectory = path.join(process.cwd(), "public", relativeDirectory)
   await mkdir(absoluteDirectory, { recursive: true })
 
-  const filename = `${randomUUID()}${extension}`
   await writeFile(
     path.join(absoluteDirectory, filename),
     Buffer.from(await file.arrayBuffer())
@@ -45,7 +57,14 @@ export async function saveImageFile(
 }
 
 export async function removeStoredFile(filePath: string | null | undefined) {
-  if (!filePath?.startsWith("/images/")) return
+  if (!filePath) return
+
+  if (filePath.startsWith("https://")) {
+    await del(filePath).catch(() => undefined)
+    return
+  }
+
+  if (!filePath.startsWith("/images/")) return
 
   const absolutePath = path.join(process.cwd(), "public", filePath)
   await unlink(absolutePath).catch(() => undefined)
