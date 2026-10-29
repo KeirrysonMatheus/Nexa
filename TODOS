@@ -1,0 +1,24 @@
+Don't let have any spaces in "user_apelido"
+
+Use updateTag instead revalidatePath
+
+Create button to toggle theme
+
+Create search input to filter post and users
+
+Let users see who liked the posts, and who is following who
+
+Create comment section to posts
+
+Create share post logic
+
+Create login with google provider functionallity
+
+Create verify email logic
+
+Fix extra padding in post header
+
+Fix extra space on left side of configurations
+
+BREAKING: Update logic at getting posts, because it's showing whole user emails in devTools
+
