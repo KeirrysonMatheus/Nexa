@@ -16,6 +16,7 @@ import UserAvatar from "./ui/user-avatar"
 import { authClient } from "@/lib/auth-client"
 import { Skeleton } from "./ui/skeleton"
 import CreatePostForm from "./create-post-form"
+import { ThemeToggle } from "./theme-provider"
 
 const HeaderSkeleton = () => {
   return <Skeleton className="h-10 w-10 rounded-full" />
@@ -42,6 +43,7 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           {user && (
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger

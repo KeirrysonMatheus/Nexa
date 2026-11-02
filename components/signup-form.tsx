@@ -34,7 +34,7 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"form">
   setIsLoading(true)
   setGlobalError(null)
 
-  const { data, error: authError } = await authClient.signUp.email({
+  const { error: authError } = await authClient.signUp.email({
     email: values.email.trim(),
     password: values.password,
     name: values.name.trim(),

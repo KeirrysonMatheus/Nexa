@@ -3,7 +3,7 @@
 import { prisma } from "@/app/client"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
-import { revalidatePath } from "next/cache"
+import { updateTag } from "next/cache"
 import type { FeedPost, PostsPage } from "@/types/post"
 
 const PAGE_SIZE = 10
@@ -31,7 +31,6 @@ function mapPost(
     user: {
       id: string
       name: string
-      email: string
       image: string | null
       user_apelido: string
     }
@@ -53,7 +52,6 @@ function mapPost(
     user: {
       id: post.user.id,
       name: post.user.name,
-      email: post.user.email,
       image: post.user.image,
       user_apelido: post.user.user_apelido,
       jaSeguindo: followingSet.has(post.user.id),
@@ -82,7 +80,14 @@ export async function getPosts(options?: {
         }
       : {}),
     include: {
-      user: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+          user_apelido: true,
+        },
+      },
       post_comentarios: true,
       postCurtidas: true,
     },
@@ -129,7 +134,7 @@ export async function createPost(formData: {
       },
     })
 
-    revalidatePath("/dashboard")
+    updateTag("posts")
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -137,7 +142,7 @@ export async function createPost(formData: {
     })
 
     if (user) {
-      revalidatePath(`/users/${user.user_apelido}`)
+      updateTag(`user-posts:${user.user_apelido}`)
     }
     return { success: true }
   } catch (error) {
@@ -189,7 +194,7 @@ export async function toggleCurtidaPost(postId: string) {
       ])
     }
 
-    revalidatePath("/dashboard")
+    updateTag("posts")
     return { success: true }
   } catch (error) {
     console.error("Erro ao processar curtida:", error)
@@ -209,8 +214,8 @@ export async function deletePost(postId: string) {
     if (post.user_id !== userId) return { success: false, error: "Você não pode remover este post." }
 
     await prisma.post.delete({ where: { post_id: postId } })
-    revalidatePath("/dashboard")
-    revalidatePath(`/users/${post.user.user_apelido}`)
+    updateTag("posts")
+    updateTag(`user-posts:${post.user.user_apelido}`)
     return { success: true }
   } catch (error) {
     console.error("Erro ao remover post:", error)

@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
-import { revalidatePath } from "next/cache"
+import { updateTag } from "next/cache"
 import { prisma } from "@/app/client"
 async function getAuthenticatedUserId() {
   const session = await auth.api.getSession({
@@ -130,7 +130,7 @@ export async function toggleFollowAction(targetUserId: string) {
     }
   })
 
-  revalidatePath("/dashboard")
+  updateTag("posts")
   const [targetUser, currentUser] = await Promise.all([
     prisma.user.findUnique({
       where: { id: targetUserId },
@@ -142,8 +142,8 @@ export async function toggleFollowAction(targetUserId: string) {
     }),
   ])
 
-  if (targetUser) revalidatePath(`/users/${targetUser.user_apelido}`)
-  if (currentUser) revalidatePath(`/users/${currentUser.user_apelido}`)
+  if (targetUser) updateTag(`user-profile:${targetUser.user_apelido}`)
+  if (currentUser) updateTag(`user-profile:${currentUser.user_apelido}`)
 
   return { success: true, following: !jaSeguindo }
 }

@@ -56,12 +56,12 @@ export default function UserAvatar() {
         <DropdownMenuSeparator />
 
         <DropdownMenuItem>
-          <Link href={`/users/${user.user_apelido}`} className="flex w-full items-center">
-            <UserIcon className="mr-2 h-4 w-4" /> Perfil
+          <Link href={`/users/${user.user_apelido}`} className="flex w-full items-center gap-1.5">
+            <UserIcon className="h-4 w-4" /> Perfil
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem>
-          <SettingsIcon className="mr-2 h-4 w-4" /> Configurações
+          <SettingsIcon className="h-4 w-4" /> Configurações
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
@@ -70,7 +70,7 @@ export default function UserAvatar() {
           onClick={handleLogout}
           className="cursor-pointer text-destructive focus:bg-destructive focus:text-destructive-foreground"
         >
-          <LogOutIcon className="mr-2 h-4 w-4" />
+          <LogOutIcon className="h-4 w-4" />
           <span>Sair</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

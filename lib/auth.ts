@@ -41,9 +41,9 @@ export const auth = betterAuth({
         before: createAuthMiddleware(async (ctx) => {
             // Monitora especificamente a rota de criação de conta por e-mail
             if (ctx.path.startsWith("/sign-up/email")) {
-                const body = ctx.body as any;
-                const email = body?.email;
-                const nickname = body?.user_apelido;
+                const body = ctx.body as Record<string, unknown> | undefined;
+                const email = typeof body?.email === "string" ? body.email : undefined;
+                const nickname = typeof body?.user_apelido === "string" ? body.user_apelido : undefined;
 
                 // Validação 1: E-mail duplicado
                 if (email) {

@@ -24,7 +24,6 @@ interface PostCardProps {
   user: {
     id: string
     name: string
-    email: string
     image: string | null
     user_apelido: string
     jaSeguindo?: boolean
@@ -58,6 +57,8 @@ const PostCard = ({
   const router = useRouter()
 
   useEffect(() => {
+    // The mounted flag gates browser-only session interactions.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
   }, [])
 
@@ -68,6 +69,8 @@ const PostCard = ({
   useEffect(() => {
     if (!mounted) return
     
+    // Synchronize optimistic state when the server-provided post changes.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLiked(currentUserId ? postCurtidas.some((curtida) => curtida.user_id === currentUserId) : false)
     setLikeCount(post_ncurtidas)
   }, [mounted, currentUserId, postCurtidas, post_ncurtidas])
@@ -122,7 +125,7 @@ const PostCard = ({
 
   return (
     <Card className="w-full overflow-hidden border-border/70 bg-card/95 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-lg">
-    <CardHeader className="border-b border-border/50 bg-muted/15 p-4 pb-3">
+    <CardHeader className="border-b border-border/50 bg-muted/15 px-4 py-3">
   {/* Mantém sempre em linha (flex-row) e distribui os lados igualmente */}
   <div className="flex w-full items-center justify-between gap-3">
     

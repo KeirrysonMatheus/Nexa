@@ -40,6 +40,8 @@ export function PostsFeed({
   const loadingRef = useRef(false)
 
   useEffect(() => {
+    // Reset local pagination state when the server feed changes.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPosts(initialPosts)
     setCursor(initialCursor)
     setHasMore(initialHasMore)

@@ -9,7 +9,6 @@ export type FeedPost = {
   user: {
     id: string
     name: string
-    email: string
     image: string | null
     user_apelido: string
     jaSeguindo: boolean
