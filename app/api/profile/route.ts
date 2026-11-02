@@ -31,7 +31,7 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Nome inválido." }, { status: 400 })
   }
 
-  if (typeof nickname !== "string" || !/^[a-zA-Z0-9_]{3,100}$/.test(nickname)) {
+  if (typeof nickname !== "string" || !/^[a-zA-Z0-9_]{3,100}$/.test(nickname.trim())) {
     return NextResponse.json({ error: "Apelido inválido." }, { status: 400 })
   }
 

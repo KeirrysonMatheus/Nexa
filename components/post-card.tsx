@@ -19,8 +19,8 @@ interface PostCardProps {
   post_conteudo: string
   post_image_url?: string
   post_data: Date
-  post_comentarios: string
   post_ncurtidas: number
+  likedByCurrentUser: boolean
   user: {
     id: string
     name: string
@@ -28,10 +28,6 @@ interface PostCardProps {
     user_apelido: string
     jaSeguindo?: boolean
   }
-  postCurtidas: {
-    post_id: string
-    user_id: string
-  }[]
 }
 
 const stripScripts = (text: string) => {
@@ -47,7 +43,7 @@ const PostCard = ({
   post_data,
   post_image_url,
   post_ncurtidas,
-  postCurtidas,
+  likedByCurrentUser,
 }: PostCardProps) => {
   const [isPending, startTransition] = useTransition()
   const [mounted, setMounted] = useState(false)
@@ -71,9 +67,9 @@ const PostCard = ({
     
     // Synchronize optimistic state when the server-provided post changes.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLiked(currentUserId ? postCurtidas.some((curtida) => curtida.user_id === currentUserId) : false)
+    setLiked(likedByCurrentUser)
     setLikeCount(post_ncurtidas)
-  }, [mounted, currentUserId, postCurtidas, post_ncurtidas])
+  }, [mounted, currentUserId, likedByCurrentUser, post_ncurtidas])
 
   const handleLike = () => {
     if (!mounted) return
@@ -124,7 +120,7 @@ const PostCard = ({
   const profileHref = `/users/${user?.user_apelido || ""}`
 
   return (
-    <Card className="w-full overflow-hidden border-border/70 bg-card/95 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-lg">
+    <Card className="w-full overflow-hidden border-border/70 bg-card/95 shadow-sm transition-all duration-200 ">
     <CardHeader className="border-b border-border/50 bg-muted/15 px-4 py-3">
   {/* Mantém sempre em linha (flex-row) e distribui os lados igualmente */}
   <div className="flex w-full items-center justify-between gap-3">
@@ -222,15 +218,17 @@ const PostCard = ({
           size="sm"
           disabled={isPending || isDeleting}
           onClick={handleLike}
+          aria-label={liked ? "Remover curtida" : "Curtir publicação"}
+          title={liked ? "Remover curtida" : "Curtir publicação"}
           className={cn(
-            "h-9 gap-2 rounded-full px-3 transition-colors",
+            "h-8 gap-1.5 rounded-md px-2 text-muted-foreground transition-colors hover:bg-transparent hover:text-red-500",
             liked
-              ? "bg-red-50/50 text-red-500 hover:text-red-600 dark:bg-red-950/20"
-              : "text-muted-foreground hover:bg-red-50/10 hover:text-red-500 dark:hover:bg-red-950/20"
+              ? "text-red-500 hover:text-red-600"
+              : ""
           )}
         >
-          <Heart className={cn("h-4 w-4", liked && "fill-current")} />
-          <span className="text-xs font-medium">{likeCount}</span>
+          <Heart className={cn("size-4", liked && "fill-current")} />
+          <span className="text-xs tabular-nums">{likeCount}</span>
         </Button>
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-muted-foreground hover:text-foreground">

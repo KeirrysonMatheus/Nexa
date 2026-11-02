@@ -13,6 +13,12 @@ export const auth = betterAuth({
             generateId: "uuid",
         },
     },
+    session: {
+        cookieCache: {
+            enabled: true,
+            maxAge: 300,
+        },
+    },
     user: {
         additionalFields: {
             user_apelido: {
@@ -44,6 +50,13 @@ export const auth = betterAuth({
                 const body = ctx.body as Record<string, unknown> | undefined;
                 const email = typeof body?.email === "string" ? body.email : undefined;
                 const nickname = typeof body?.user_apelido === "string" ? body.user_apelido : undefined;
+
+                if (nickname && !/^[a-zA-Z0-9_]{3,100}$/.test(nickname.trim())) {
+                    throw new APIError("BAD_REQUEST", {
+                        message: "O apelido deve conter apenas letras, números e underscore, sem espaços.",
+                        code: "INVALID_NICKNAME",
+                    });
+                }
 
                 // Validação 1: E-mail duplicado
                 if (email) {

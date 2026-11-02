@@ -110,8 +110,7 @@ export function PostsFeed({
           post_data={new Date(post.post_data)}
           post_ncurtidas={post.post_ncurtidas}
           user={post.user}
-          post_comentarios={post.post_comentarios}
-          postCurtidas={post.postCurtidas}
+          likedByCurrentUser={post.likedByCurrentUser}
         />
       ))}
 

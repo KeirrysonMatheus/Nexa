@@ -1,4 +1,5 @@
 import { Geist_Mono, DM_Sans } from "next/font/google"
+import type { Metadata } from "next"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -10,6 +11,14 @@ const fontMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 })
+
+export const metadata: Metadata = {
+  title: "Nexa",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+  },
+}
 
 export default function RootLayout({
   children,

@@ -34,8 +34,7 @@ function mapPost(
       image: string | null
       user_apelido: string
     }
-    post_comentarios: { comentario: string }[]
-    postCurtidas: { post_id: string; user_id: string }[]
+    postCurtidas: { user_id: string }[]
   },
   followingSet: Set<string>
 ): FeedPost {
@@ -46,9 +45,6 @@ function mapPost(
     post_image_url: post.post_image_path || undefined,
     post_data: post.post_data.toISOString(),
     post_ncurtidas: post.post_ncurtidas,
-    post_comentarios: post.post_comentarios
-      .map((comentario) => comentario.comentario)
-      .join("\n"),
     user: {
       id: post.user.id,
       name: post.user.name,
@@ -56,7 +52,7 @@ function mapPost(
       user_apelido: post.user.user_apelido,
       jaSeguindo: followingSet.has(post.user.id),
     },
-    postCurtidas: post.postCurtidas,
+    likedByCurrentUser: post.postCurtidas.length > 0,
   }
 }
 export async function getPosts(options?: {
@@ -88,8 +84,10 @@ export async function getPosts(options?: {
           user_apelido: true,
         },
       },
-      post_comentarios: true,
-      postCurtidas: true,
+      postCurtidas: {
+        where: { user_id: currentUserId },
+        select: { user_id: true },
+      },
     },
     orderBy: [{ post_data: "desc" }, { post_id: "desc" }],
   })

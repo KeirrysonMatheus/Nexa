@@ -18,6 +18,10 @@ const AUTH_ROUTES = new Set([
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
 
+  if (AUTH_ROUTES.has(pathname)) {
+    return NextResponse.next()
+  }
+
   const session = await auth.api.getSession({
     headers: req.headers,
   })
@@ -33,12 +37,6 @@ export async function proxy(req: NextRequest) {
     loginUrl.pathname = LOGIN_PATH
     loginUrl.searchParams.set("callbackUrl", pathname)
     return NextResponse.redirect(loginUrl)
-  }
-
-  if (session && AUTH_ROUTES.has(pathname)) {
-    const dashboardUrl = req.nextUrl.clone()
-    dashboardUrl.pathname = DASHBOARD_PATH
-    return NextResponse.redirect(dashboardUrl)
   }
 
   return NextResponse.next()

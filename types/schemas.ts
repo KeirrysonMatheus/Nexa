@@ -17,7 +17,7 @@ export const signUpFormSchema = z.object({
     .trim()
     .min(3, { message: "O apelido deve ter pelo menos 3 caracteres." })
     .max(100, { message: "O apelido deve ter no máximo 100 caracteres." })
-    .regex(/^[a-zA-Z0-9_]+$/, { message: "O apelido deve conter apenas letras, números e underscore." }),
+    .regex(/^[a-zA-Z0-9_]+$/, { message: "O apelido deve conter apenas letras, números e underscore, sem espaços." }),
   email: z.string()
     .trim()
     .max(100, { message: "O e-mail deve ter no máximo 100 caracteres." })

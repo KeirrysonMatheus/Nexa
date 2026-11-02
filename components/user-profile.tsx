@@ -6,6 +6,8 @@ import FollowButton from "@/components/ui/follow-button"
 import { CalendarDays } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { EditProfileForm } from "@/components/edit-profile-form"
+import { ProfileConnections } from "@/components/profile-connections"
+import type { ProfileConnection } from "@/actions/users"
 
 type UserProfileProps = {
   user: {
@@ -23,7 +25,12 @@ type UserProfileProps = {
   }
 }
 
-export function UserProfile({ user }: UserProfileProps) {
+export function UserProfile({
+  user,
+  connections,
+}: UserProfileProps & {
+  connections: { followers: ProfileConnection[]; following: ProfileConnection[] }
+}) {
   const [editing, setEditing] = useState(false)
   const memberSince = new Date(user.createdAt).toLocaleDateString("pt-BR", {
     month: "long",
@@ -100,26 +107,11 @@ export function UserProfile({ user }: UserProfileProps) {
             </p>
           )}
 
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-            <span>
-              <strong className="font-semibold text-foreground">
-                {user.user_nseguidores}
-              </strong>{" "}
-              <span className="text-muted-foreground">seguidores</span>
-            </span>
-            <span>
-              <strong className="font-semibold text-foreground">
-                {user.user_nseguindo}
-              </strong>{" "}
-              <span className="text-muted-foreground">seguindo</span>
-            </span>
-            <span>
-              <strong className="font-semibold text-foreground">
-                {user.postCount}
-              </strong>{" "}
-              <span className="text-muted-foreground">posts</span>
-            </span>
-          </div>
+          <ProfileConnections {...connections} />
+          <p className="text-sm">
+            <strong className="font-semibold text-foreground">{user.postCount}</strong>{" "}
+            <span className="text-muted-foreground">posts</span>
+          </p>
 
           <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <CalendarDays className="size-3.5" />

@@ -5,7 +5,7 @@ import Header from "@/components/header"
 import MobileNavBar from "@/components/mobile-navbar"
 import { Posts } from "@/components/posts"
 import { UserProfile } from "@/components/user-profile"
-import { getUserProfile } from "@/actions/users"
+import { getUserConnections, getUserProfile } from "@/actions/users"
 import SkeletonCard from "@/components/skeleton-card"
 
 type UserPageProps = {
@@ -48,6 +48,8 @@ export default async function UserPage({ params }: UserPageProps) {
     notFound()
   }
 
+  const connections = await getUserConnections(user.id)
+
   return (
     <div className="relative min-h-dvh w-full pb-20 md:pb-8">
       <div
@@ -58,7 +60,7 @@ export default async function UserPage({ params }: UserPageProps) {
       <Header />
 
       <main className="mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
-        <UserProfile user={user} />
+        <UserProfile user={user} connections={connections} />
 
         <section className="space-y-4">
           <div className="space-y-1">

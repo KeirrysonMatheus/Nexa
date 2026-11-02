@@ -4,7 +4,7 @@ import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { updateTag } from "next/cache"
 import { prisma } from "@/app/client"
-async function getAuthenticatedUserId() {
+export async function getAuthenticatedUserId() {
   const session = await auth.api.getSession({
     headers: await headers(),
   })
@@ -14,6 +14,39 @@ async function getAuthenticatedUserId() {
   }
 
   return session.user.id
+}
+
+export type ProfileConnection = {
+  id: string
+  name: string
+  image: string | null
+  user_apelido: string
+}
+
+export async function getUserConnections(userId: string) {
+  await getAuthenticatedUserId()
+
+  const [followers, following] = await Promise.all([
+    prisma.seguidores.findMany({
+      where: { seguido_id: userId },
+      select: {
+        seguidor: { select: { id: true, name: true, image: true, user_apelido: true } },
+      },
+      orderBy: { seguidor: { name: "asc" } },
+    }),
+    prisma.seguidores.findMany({
+      where: { seguidor_id: userId },
+      select: {
+        seguido: { select: { id: true, name: true, image: true, user_apelido: true } },
+      },
+      orderBy: { seguido: { name: "asc" } },
+    }),
+  ])
+
+  return {
+    followers: followers.map(({ seguidor }) => seguidor),
+    following: following.map(({ seguido }) => seguido),
+  }
 }
 
 export async function getUserProfile(userApelido: string) {
