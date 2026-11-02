@@ -4,6 +4,7 @@ import type { Metadata } from "next"
 import { searchContent } from "@/actions/search"
 import Header from "@/components/header"
 import MobileNavBar from "@/components/mobile-navbar"
+import FilterPost from "@/components/ui/filter-post"
 
 export const metadata: Metadata = { title: "Buscar - Nexa" }
 
@@ -19,6 +20,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     <div className="min-h-dvh pb-20 md:pb-8">
       <Header />
       <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
+        <div className="md:hidden">
+          <FilterPost />
+        </div>
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Resultados da busca</h1>
           <p className="text-sm text-muted-foreground">
