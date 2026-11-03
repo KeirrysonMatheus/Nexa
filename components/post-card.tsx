@@ -146,7 +146,11 @@ const PostCard = ({
       
       {/* Container dos textos: min-w-0 é crucial aqui para permitir o truncamento */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <Link href={profileHref} className="mb-0.5 truncate text-sm font-semibold tracking-tight text-foreground hover:underline">
+        <Link
+          href={profileHref}
+          title={user?.name || "Usuário"}
+          className="mb-0.5 min-w-0 max-w-full truncate text-sm font-semibold tracking-tight text-foreground hover:underline"
+        >
           {user?.name || "Usuário"}
         </Link>
         
