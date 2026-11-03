@@ -4,9 +4,10 @@
 
 8 - Create login with google provider functionallity
 
-9 - Create verify email logic
+9- Create verify email logic
 
+Cut long names in post header
 
+Split posts into categories 
 
-
-
+Fix error that when user tries to make a second search, it doesn't work
