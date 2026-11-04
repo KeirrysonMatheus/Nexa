@@ -7,6 +7,25 @@ import { createAuthMiddleware, APIError } from "better-auth/api";
 const googleClientId = process.env.GOOGLE_CLIENT_ID?.trim()
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim()
 
+async function createSocialNickname(email: string) {
+    const emailName = email.split("@")[0] ?? ""
+    const normalizedName = emailName
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9_]/g, "")
+        .toLowerCase()
+    const base = `google_${(normalizedName || "usuario").slice(0, 80)}`
+
+    let nickname = base
+    let suffix = 1
+    while (await prisma.user.findUnique({ where: { user_apelido: nickname } })) {
+        nickname = `${base.slice(0, 99 - String(suffix).length)}_${suffix}`
+        suffix += 1
+    }
+
+    return nickname
+}
+
 export const auth = betterAuth({
     database: prismaAdapter(prisma, {
         provider: "postgresql", 
@@ -54,6 +73,25 @@ export const auth = betterAuth({
               },
           }
         : {}),
+    databaseHooks: {
+        user: {
+            create: {
+                before: async (user) => {
+                    const userData = { ...user }
+
+                    if (!userData.user_apelido && userData.email) {
+                        userData.user_apelido = await createSocialNickname(userData.email)
+                    }
+
+                    if (!userData.user_datanascimento) {
+                        userData.user_datanascimento = new Date("1970-01-01")
+                    }
+
+                    return { data: userData }
+                },
+            },
+        },
+    },
     
     // 🚀 ADICIONE O BLOCO DE HOOKS AQUI
     hooks: {
