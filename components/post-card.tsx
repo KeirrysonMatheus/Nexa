@@ -120,7 +120,7 @@ const PostCard = ({
   const profileHref = `/users/${user?.user_apelido || ""}`
 
   return (
-    <Card className="w-full overflow-hidden border-border/70 bg-card/95 shadow-sm transition-all duration-200 ">
+    <Card className="w-full overflow-hidden border-border/70 bg-card/95 shadow-sm transition-all duration-200">
     <CardHeader className="border-b border-border/50 bg-muted/15 px-4 py-3">
   {/* Mantém sempre em linha (flex-row) e distribui os lados igualmente */}
   <div className="flex w-full items-center justify-between gap-3">
