@@ -61,7 +61,6 @@ export async function getUserProfile(userApelido: string) {
     select: {
       id: true,
       name: true,
-      email: true,
       image: true,
       user_apelido: true,
       user_bio: true,
@@ -91,7 +90,6 @@ export async function getUserProfile(userApelido: string) {
   return {
     id: user.id,
     name: user.name,
-    email: user.email,
     image: user.image,
     user_apelido: user.user_apelido,
     user_bio: user.user_bio,
