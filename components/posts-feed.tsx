@@ -109,6 +109,7 @@ export function PostsFeed({
           post_image_url={post.post_image_url}
           post_data={new Date(post.post_data)}
           post_ncurtidas={post.post_ncurtidas}
+          curtidas={post.curtidas}
           user={post.user}
           likedByCurrentUser={post.likedByCurrentUser}
         />

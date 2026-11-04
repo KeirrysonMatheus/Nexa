@@ -6,6 +6,12 @@ export type FeedPost = {
   post_data: string
   post_ncurtidas: number
   likedByCurrentUser: boolean
+  curtidas: {
+    id: string
+    name: string
+    image: string | null
+    user_apelido: string
+  }[]
   user: {
     id: string
     name: string
