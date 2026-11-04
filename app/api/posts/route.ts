@@ -3,10 +3,15 @@ import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/app/client"
 import { removeStoredFile, saveImageFile } from "@/lib/upload"
+import { isAllowedMutationOrigin } from "@/lib/request-security"
 
 export const runtime = "nodejs"
 
 export async function POST(request: Request) {
+  if (!isAllowedMutationOrigin(request)) {
+    return NextResponse.json({ error: "Origem não permitida." }, { status: 403 })
+  }
+
   const session = await auth.api.getSession({ headers: await headers() })
 
   if (!session?.user?.id) {
