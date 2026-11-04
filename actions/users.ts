@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
-import { updateTag } from "next/cache"
+import { cacheLife, cacheTag, updateTag } from "next/cache"
 import { prisma } from "@/app/client"
 import { consumeRateLimit } from "@/lib/rate-limit"
 export async function getAuthenticatedUserId() {
@@ -58,6 +58,14 @@ export async function getUserProfile(userApelido: string) {
   }
 
   const currentUserId = await getAuthenticatedUserId()
+
+  return getCachedUserProfile(userApelido, currentUserId)
+}
+
+async function getCachedUserProfile(userApelido: string, currentUserId: string) {
+  "use cache"
+  cacheLife("minutes")
+  cacheTag(`user-profile:${userApelido}`)
 
   const user = await prisma.user.findUnique({
     where: { user_apelido: userApelido },

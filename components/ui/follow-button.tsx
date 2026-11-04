@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useEffect, useState, useTransition } from "react"
 import { Button } from "./button"
 import { UserPlus, UserMinus, UserCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toggleFollowAction } from "@/actions/users"
+import { useRouter } from "next/navigation"
 
 interface FollowButtonProps {
   initialJaSeguindo: boolean
@@ -21,6 +22,12 @@ export default function FollowButton({
 }: FollowButtonProps) {
   const [jaSeguindo, setJaSeguindo] = useState(initialJaSeguindo)
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setJaSeguindo(initialJaSeguindo)
+  }, [initialJaSeguindo])
 
   const handleFollow = () => {
     const previous = jaSeguindo
@@ -31,6 +38,7 @@ export default function FollowButton({
         const result = await toggleFollowAction(targetUserId)
         if (result?.following !== undefined) {
           setJaSeguindo(result.following)
+          router.refresh()
         }
       } catch (error) {
         setJaSeguindo(previous)

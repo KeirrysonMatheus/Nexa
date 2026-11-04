@@ -3,7 +3,7 @@
 import { prisma } from "@/app/client"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
-import { updateTag } from "next/cache"
+import { cacheLife, cacheTag, updateTag } from "next/cache"
 import type { FeedPost, PostsPage } from "@/types/post"
 import { postInputSchema } from "@/types/schemas"
 import { consumeRateLimit } from "@/lib/rate-limit"
@@ -72,19 +72,28 @@ export async function getPosts(options?: {
   userId?: string
 }): Promise<PostsPage> {
   const currentUserId = await getAuthenticatedUser()
-  const cursor = options?.cursor || undefined
+  return getCachedPosts(options?.cursor || null, options?.userId, currentUserId)
+}
+
+async function getCachedPosts(cursor: string | null, userId: string | undefined, currentUserId: string) {
+  "use cache"
+  cacheLife("minutes")
+  cacheTag("posts")
+  if (userId) cacheTag(`user-posts:${userId}`)
+
+  const postCursor = cursor || undefined
 
   const posts = await prisma.post.findMany({
     take: PAGE_SIZE + 1,
-    ...(cursor
+    ...(postCursor
       ? {
           skip: 1,
-          cursor: { post_id: cursor },
+          cursor: { post_id: postCursor },
         }
       : {}),
-    ...(options?.userId
+    ...(userId
       ? {
-          where: { user_id: options.userId },
+          where: { user_id: userId },
         }
       : {}),
     include: {
