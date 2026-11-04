@@ -4,6 +4,8 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/app/client"
 import { removeStoredFile, saveImageFile } from "@/lib/upload"
 import { isAllowedMutationOrigin } from "@/lib/request-security"
+import { enforceRequestRateLimit } from "@/lib/rate-limit"
+import { profileInputSchema } from "@/types/schemas"
 
 export const runtime = "nodejs"
 
@@ -26,23 +28,19 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Não autorizado." }, { status: 401 })
   }
 
+  const rateLimit = await enforceRequestRateLimit("profile:update", { limit: 10, windowMs: 60_000 })
+  if (!rateLimit.allowed) {
+    return NextResponse.json({ error: "Muitas tentativas. Tente novamente mais tarde." }, { status: 429 })
+  }
+
   const formData = await request.formData()
   const name = formData.get("name")
   const nickname = formData.get("user_apelido")
   const bio = formData.get("user_bio")
   const image = formData.get("image")
 
-  if (typeof name !== "string" || !name.trim() || name.length > 100) {
-    return NextResponse.json({ error: "Nome inválido." }, { status: 400 })
-  }
-
-  if (typeof nickname !== "string" || !/^[a-zA-Z0-9_]{3,100}$/.test(nickname.trim())) {
-    return NextResponse.json({ error: "Apelido inválido." }, { status: 400 })
-  }
-
-  if (typeof bio !== "string" || bio.length > 300) {
-    return NextResponse.json({ error: "Bio inválida." }, { status: 400 })
-  }
+  const parsedInput = profileInputSchema.safeParse({ name, user_apelido: nickname, user_bio: bio })
+  if (!parsedInput.success) return NextResponse.json({ error: "Dados inválidos." }, { status: 400 })
 
   const currentUser = await prisma.user.findUnique({
     where: { id: session.user.id },
@@ -65,9 +63,9 @@ export async function PUT(request: Request) {
     const user = await prisma.user.update({
       where: { id: session.user.id },
       data: {
-        name: name.trim(),
-        user_apelido: nickname.trim(),
-        user_bio: bio.trim() || null,
+        name: parsedInput.data.name,
+        user_apelido: parsedInput.data.user_apelido,
+        user_bio: parsedInput.data.user_bio.trim() || null,
         image: imagePath,
       },
       select: {

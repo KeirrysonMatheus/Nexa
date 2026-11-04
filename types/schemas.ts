@@ -30,3 +30,14 @@ export const signUpFormSchema = z.object({
 });
 export type SignUpFormData = z.infer<typeof signUpFormSchema>;
 export type LoginFormData = z.infer<typeof LoginFormSchema>;
+
+export const postInputSchema = z.object({
+  titulo: z.string().trim().min(1).max(300),
+  conteudo: z.string().trim().min(1).max(5000),
+})
+
+export const profileInputSchema = z.object({
+  name: z.string().trim().min(1).max(100),
+  user_apelido: z.string().trim().regex(/^[a-zA-Z0-9_]{3,100}$/),
+  user_bio: z.string().max(300),
+})
