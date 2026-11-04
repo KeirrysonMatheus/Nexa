@@ -1,29 +1,10 @@
 "use client"
 
-import { useEffect, useState, useTransition } from "react"
+import { useOptimistic, useTransition } from "react"
 import { Button } from "./button"
 import { UserPlus, UserMinus, UserCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toggleFollowAction } from "@/actions/users"
-
-const followStates = new Map<string, boolean>()
-const followListeners = new Map<string, Set<(following: boolean) => void>>()
-
-function publishFollowState(targetUserId: string, following: boolean) {
-  followStates.set(targetUserId, following)
-  followListeners.get(targetUserId)?.forEach((listener) => listener(following))
-}
-
-function subscribeToFollowState(targetUserId: string, listener: (following: boolean) => void) {
-  const listeners = followListeners.get(targetUserId) ?? new Set()
-  listeners.add(listener)
-  followListeners.set(targetUserId, listeners)
-
-  return () => {
-    listeners.delete(listener)
-    if (listeners.size === 0) followListeners.delete(targetUserId)
-  }
-}
 
 interface FollowButtonProps {
   initialJaSeguindo: boolean
@@ -38,29 +19,17 @@ export default function FollowButton({
   size = "sm",
   className,
 }: FollowButtonProps) {
-  const [jaSeguindo, setJaSeguindo] = useState(initialJaSeguindo)
+  const [jaSeguindo, setJaSeguindo] = useOptimistic(initialJaSeguindo)
   const [isPending, startTransition] = useTransition()
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setJaSeguindo(initialJaSeguindo)
-    publishFollowState(targetUserId, initialJaSeguindo)
-  }, [initialJaSeguindo, targetUserId])
-
-  useEffect(() => subscribeToFollowState(targetUserId, setJaSeguindo), [targetUserId])
-
   const handleFollow = () => {
-    const previous = jaSeguindo
-    publishFollowState(targetUserId, !previous)
-
     startTransition(async () => {
+      setJaSeguindo(!jaSeguindo)
+
       try {
         const result = await toggleFollowAction(targetUserId)
-        if (result?.following !== undefined) {
-          publishFollowState(targetUserId, result.following)
-        }
+        if (!result.success) console.error("Erro ao seguir/deseguir")
       } catch (error) {
-        publishFollowState(targetUserId, previous)
         console.error("Erro ao seguir/deseguir:", error)
       }
     })

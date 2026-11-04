@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
-import { cacheLife, cacheTag, updateTag } from "next/cache"
+import { cacheLife, cacheTag, revalidatePath, updateTag } from "next/cache"
 import { prisma } from "@/app/client"
 import { consumeRateLimit } from "@/lib/rate-limit"
 export async function getAuthenticatedUserId() {
@@ -189,6 +189,7 @@ export async function toggleFollowAction(targetUserId: string) {
 
   if (targetUser) updateTag(`user-profile:${targetUser.user_apelido}`)
   if (currentUser) updateTag(`user-profile:${currentUser.user_apelido}`)
+  revalidatePath("/", "layout")
 
   return { success: true, following: !jaSeguindo }
 }
