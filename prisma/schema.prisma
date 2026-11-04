@@ -122,3 +122,12 @@ model seguidores {
   @@id([seguidor_id, seguido_id])
   @@index([seguido_id])
 }
+
+model rate_limit_bucket {
+  key       String   @id @db.VarChar(255)
+  count     Int      @default(0)
+  resetAt   DateTime @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@index([resetAt])
+}

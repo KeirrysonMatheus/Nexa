@@ -6,6 +6,8 @@ import { createAuthMiddleware, APIError } from "better-auth/api";
 
 const googleClientId = process.env.GOOGLE_CLIENT_ID?.trim()
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim()
+const trustedOrigins = [process.env.BETTER_AUTH_URL, process.env.NEXT_PUBLIC_URL, process.env.NEXT_PUBLIC_APP_URL]
+    .filter((origin): origin is string => Boolean(origin))
 
 async function createSocialNickname(email: string) {
     const emailName = email.split("@")[0] ?? ""
@@ -27,6 +29,7 @@ async function createSocialNickname(email: string) {
 }
 
 export const auth = betterAuth({
+    trustedOrigins,
     database: prismaAdapter(prisma, {
         provider: "postgresql", 
     }),

@@ -5,6 +5,8 @@ import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { updateTag } from "next/cache"
 import type { FeedPost, PostsPage } from "@/types/post"
+import { postInputSchema } from "@/types/schemas"
+import { consumeRateLimit } from "@/lib/rate-limit"
 
 const PAGE_SIZE = 10
 
@@ -140,11 +142,15 @@ export async function createPost(formData: {
 }) {
   try {
     const userId = await getAuthenticatedUser()
+    const parsedInput = postInputSchema.safeParse(formData)
+    if (!parsedInput.success) return { success: false, error: "Dados inválidos." }
+    const rateLimit = await consumeRateLimit(`posts:create:user:${userId}`, { limit: 20, windowMs: 60_000 })
+    if (!rateLimit.allowed) return { success: false, error: "Muitas tentativas. Tente novamente mais tarde." }
 
     await prisma.post.create({
       data: {
-        post_titulo: formData.titulo,
-        post_conteudo: formData.conteudo,
+        post_titulo: parsedInput.data.titulo,
+        post_conteudo: parsedInput.data.conteudo,
         post_image_path: null,
         user_id: userId,
       },
@@ -170,6 +176,8 @@ export async function createPost(formData: {
 export async function toggleCurtidaPost(postId: string) {
   try {
     const userId = await getAuthenticatedUser()
+    const rateLimit = await consumeRateLimit(`posts:like:user:${userId}`, { limit: 60, windowMs: 60_000 })
+    if (!rateLimit.allowed) return { success: false, error: "Muitas tentativas. Tente novamente mais tarde." }
 
     const existentLike = await prisma.post_curtidas.findUnique({
       where: {

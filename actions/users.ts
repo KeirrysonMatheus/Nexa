@@ -4,6 +4,7 @@ import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { updateTag } from "next/cache"
 import { prisma } from "@/app/client"
+import { consumeRateLimit } from "@/lib/rate-limit"
 export async function getAuthenticatedUserId() {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -33,6 +34,7 @@ export async function getUserConnections(userId: string) {
         seguidor: { select: { id: true, name: true, image: true, user_apelido: true } },
       },
       orderBy: { seguidor: { name: "asc" } },
+      take: 100,
     }),
     prisma.seguidores.findMany({
       where: { seguidor_id: userId },
@@ -40,6 +42,7 @@ export async function getUserConnections(userId: string) {
         seguido: { select: { id: true, name: true, image: true, user_apelido: true } },
       },
       orderBy: { seguido: { name: "asc" } },
+      take: 100,
     }),
   ])
 
@@ -105,10 +108,15 @@ export async function getUserProfile(userApelido: string) {
 
 export async function toggleFollowAction(targetUserId: string) {
   const currentUserId = await getAuthenticatedUserId()
+  const rateLimit = await consumeRateLimit(`users:follow:${currentUserId}`, { limit: 60, windowMs: 60_000 })
+  if (!rateLimit.allowed) throw new Error("Muitas tentativas. Tente novamente mais tarde.")
 
   if (currentUserId === targetUserId) {
     throw new Error("Você não pode seguir a si mesmo.")
   }
+
+  const existingTarget = await prisma.user.findUnique({ where: { id: targetUserId }, select: { id: true } })
+  if (!existingTarget) throw new Error("Usuário não encontrado.")
 
   const jaSeguindo = await prisma.seguidores.findUnique({
     where: {
