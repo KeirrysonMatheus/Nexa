@@ -5,6 +5,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { Heart, Share2, Bookmark, Trash2 } from "lucide-react"
+import { ChevronRight, UsersRound } from "lucide-react"
 import { deletePost, toggleCurtidaPost } from "@/actions/posts"
 import FollowButton from "@/components/ui/follow-button"
 import { authClient } from "@/lib/auth-client"
@@ -12,6 +13,13 @@ import { cn } from "@/lib/utils"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 interface PostCardProps {
   post_id: string
@@ -21,6 +29,12 @@ interface PostCardProps {
   post_data: Date
   post_ncurtidas: number
   likedByCurrentUser: boolean
+  curtidas: {
+    id: string
+    name: string
+    image: string | null
+    user_apelido: string
+  }[]
   user: {
     id: string
     name: string
@@ -44,6 +58,7 @@ const PostCard = ({
   post_image_url,
   post_ncurtidas,
   likedByCurrentUser,
+  curtidas,
 }: PostCardProps) => {
   const [isPending, startTransition] = useTransition()
   const [mounted, setMounted] = useState(false)
@@ -234,6 +249,51 @@ const PostCard = ({
           <Heart className={cn("size-4", liked && "fill-current")} />
           <span className="text-xs tabular-nums">{likeCount}</span>
         </Button>
+        <Dialog>
+          <DialogTrigger className="inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+            <UsersRound className="size-3.5" />
+            <span>{likeCount} {likeCount === 1 ? "curtida" : "curtidas"}</span>
+            <ChevronRight className="size-3.5" />
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Quem curtiu</DialogTitle>
+            </DialogHeader>
+            {curtidas.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                Ninguém curtiu esta publicação ainda.
+              </p>
+            ) : (
+              <div className="max-h-72 space-y-1 overflow-y-auto">
+                {curtidas.map((curtida) => (
+                  <Link
+                    key={curtida.id}
+                    href={`/users/${curtida.user_apelido}`}
+                    className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted"
+                  >
+                    {curtida.image ? (
+                      <Image
+                        src={curtida.image}
+                        alt={`Avatar de ${curtida.name}`}
+                        width={40}
+                        height={40}
+                        className="size-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-semibold text-secondary-foreground">
+                        {curtida.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-medium">{curtida.name}</span>
+                      <span className="block truncate text-xs text-muted-foreground">@{curtida.user_apelido}</span>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-muted-foreground hover:text-foreground">
             <Bookmark className="h-4 w-4" />

@@ -34,7 +34,15 @@ function mapPost(
       image: string | null
       user_apelido: string
     }
-    postCurtidas: { user_id: string }[]
+    postCurtidas: {
+      user_id: string
+      user: {
+        id: string
+        name: string
+        image: string | null
+        user_apelido: string
+      }
+    }[]
   },
   followingSet: Set<string>
 ): FeedPost {
@@ -45,6 +53,7 @@ function mapPost(
     post_image_url: post.post_image_path || undefined,
     post_data: post.post_data.toISOString(),
     post_ncurtidas: post.post_ncurtidas,
+    curtidas: post.postCurtidas.map(({ user }) => user),
     user: {
       id: post.user.id,
       name: post.user.name,
@@ -85,8 +94,17 @@ export async function getPosts(options?: {
         },
       },
       postCurtidas: {
-        where: { user_id: currentUserId },
-        select: { user_id: true },
+        select: {
+          user_id: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              image: true,
+              user_apelido: true,
+            },
+          },
+        },
       },
     },
     orderBy: [{ post_data: "desc" }, { post_id: "desc" }],
