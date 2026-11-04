@@ -26,7 +26,6 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"form">
       email: "",
       password: "",
       confirmPassword: "",
-      user_datanascimento: "" 
     }
   })
 
@@ -39,7 +38,6 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"form">
     password: values.password,
     name: values.name.trim(),
     user_apelido: values.nickname.trim(),
-    user_datanascimento: new Date(values.user_datanascimento.trim()),
   })
   
   setIsLoading(false)
@@ -118,27 +116,6 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"form">
               <FieldDescription>Seu identificador único na plataforma.</FieldDescription>
               {form.formState.errors.nickname && (
                 <p className="text-xs text-red-500">{form.formState.errors.nickname.message}</p>
-              )}
-            </Field>
-          )}
-        />
-
-        {/* Data de Nascimento */}
-        <Controller
-          name="user_datanascimento"
-          control={form.control}
-          render={({ field }) => (
-            <Field>
-              <FieldLabel htmlFor="user_datanascimento">Data de Nascimento</FieldLabel>
-              <Input 
-                {...field} 
-                id="user_datanascimento" 
-                type="date" 
-                className="bg-background uppercase text-sm block w-full" 
-                disabled={isLoading} 
-              />
-              {form.formState.errors.user_datanascimento && (
-                <p className="text-xs text-red-500">{form.formState.errors.user_datanascimento.message}</p>
               )}
             </Field>
           )}

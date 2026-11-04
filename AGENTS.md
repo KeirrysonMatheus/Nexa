@@ -11,3 +11,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Task Branch Workflow
 
 For every request, create a dedicated branch for the task, implement and validate the changes there, commit the completed work, and merge that branch into `main` before finishing.
+
+## Give max priority for security of the system
