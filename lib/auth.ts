@@ -50,13 +50,6 @@ export const auth = betterAuth({
                 defaultValue: "", 
                 returned: true
             },
-            user_datanascimento: {
-                type: "date",
-                required: true,
-                input: true,
-                defaultValue: () => new Date(),
-                returned: true
-            }
         }
     },
     emailAndPassword: {
@@ -81,10 +74,6 @@ export const auth = betterAuth({
 
                     if (!userData.user_apelido && userData.email) {
                         userData.user_apelido = await createSocialNickname(userData.email)
-                    }
-
-                    if (!userData.user_datanascimento) {
-                        userData.user_datanascimento = new Date("1970-01-01")
                     }
 
                     return { data: userData }
