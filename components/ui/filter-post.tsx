@@ -2,22 +2,23 @@
 
 import { Button } from "./button"
 import { Input } from "./input"
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { Search } from "lucide-react"
 import { Spinner } from "./spinner"
 import { useRouter } from "next/navigation"
 
 const FilterPost = () => {
   const [busca, setBusca] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [loading, startTransition] = useTransition()
   const router = useRouter()
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (!busca.trim()) return
 
-    setLoading(true)
-    router.push(`/busca?termo=${encodeURIComponent(busca)}`)
+    startTransition(() => {
+      router.push(`/busca?termo=${encodeURIComponent(busca)}`)
+    })
   }
 
   return (

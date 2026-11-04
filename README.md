@@ -19,3 +19,14 @@ To use the components in your app, import them as follows:
 ```tsx
 import { Button } from "@/components/ui/button";
 ```
+
+## Environment variables
+
+Set the database and application URL variables required by the local setup. Google login is enabled when both values below are present:
+
+```env
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+```
+
+For Google OAuth, use the callback URL `/api/auth/callback/google` on the same origin as the app.
