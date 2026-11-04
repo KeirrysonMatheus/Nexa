@@ -46,7 +46,8 @@ function mapPost(
       }
     }[]
   },
-  followingSet: Set<string>
+  followingSet: Set<string>,
+  currentUserId: string
 ): FeedPost {
   return {
     post_id: post.post_id,
@@ -63,7 +64,7 @@ function mapPost(
       user_apelido: post.user.user_apelido,
       jaSeguindo: followingSet.has(post.user.id),
     },
-    likedByCurrentUser: post.postCurtidas.length > 0,
+    likedByCurrentUser: post.postCurtidas.some(({ user_id }) => user_id === currentUserId),
   }
 }
 export async function getPosts(options?: {
@@ -128,7 +129,7 @@ export async function getPosts(options?: {
       : []
 
   const followingSet = new Set(follows.map((follow) => follow.seguido_id))
-  const mapped = page.map((post) => mapPost(post, followingSet))
+  const mapped = page.map((post) => mapPost(post, followingSet, currentUserId))
 
   return {
     posts: mapped,
@@ -246,4 +247,3 @@ export async function deletePost(postId: string) {
     return { success: false, error: "Não foi possível remover o post." }
   }
 }
-
