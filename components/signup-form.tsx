@@ -98,7 +98,7 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"form">
           control={form.control}
           render={({ field }) => (
             <Field>
-              <FieldLabel htmlFor="nome">Nome completo</FieldLabel>
+              <FieldLabel htmlFor="nome">Nome e Sobrenome</FieldLabel>
               <Input {...field} id="nome" type="text" placeholder="John Doe" className="bg-background" disabled={isLoading} />
               {form.formState.errors.name && (
                 <p className="text-xs text-red-500">{form.formState.errors.name.message}</p>
