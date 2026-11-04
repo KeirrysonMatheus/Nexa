@@ -7,8 +7,6 @@ import { isAllowedMutationOrigin } from "@/lib/request-security"
 import { enforceRequestRateLimit } from "@/lib/rate-limit"
 import { profileInputSchema } from "@/types/schemas"
 
-export const runtime = "nodejs"
-
 type ProfileResponse = {
   id: string
   name: string

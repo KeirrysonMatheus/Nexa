@@ -9,8 +9,6 @@ const CONTENT_TYPES: Record<string, string> = {
   ".webp": "image/webp",
 }
 
-export const runtime = "nodejs"
-
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ path: string[] }> }

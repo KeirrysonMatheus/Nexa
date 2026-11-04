@@ -7,8 +7,6 @@ import { isAllowedMutationOrigin } from "@/lib/request-security"
 import { enforceRequestRateLimit } from "@/lib/rate-limit"
 import { postInputSchema } from "@/types/schemas"
 
-export const runtime = "nodejs"
-
 export async function POST(request: Request) {
   if (!isAllowedMutationOrigin(request)) {
     return NextResponse.json({ error: "Origem não permitida." }, { status: 403 })
