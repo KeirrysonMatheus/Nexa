@@ -4,6 +4,9 @@ import { prisma } from "@/app/client";
 // 1. IMPORTANTE: Importar o middleware e o construtor de erros oficiais
 import { createAuthMiddleware, APIError } from "better-auth/api"; 
 
+const googleClientId = process.env.GOOGLE_CLIENT_ID?.trim()
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim()
+
 export const auth = betterAuth({
     database: prismaAdapter(prisma, {
         provider: "postgresql", 
@@ -41,6 +44,16 @@ export const auth = betterAuth({
         enabled: true,
         requireEmailVerification: false, 
     },
+    ...(googleClientId && googleClientSecret
+        ? {
+              socialProviders: {
+                  google: {
+                      clientId: googleClientId,
+                      clientSecret: googleClientSecret,
+                  },
+              },
+          }
+        : {}),
     
     // 🚀 ADICIONE O BLOCO DE HOOKS AQUI
     hooks: {
