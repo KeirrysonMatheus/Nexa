@@ -1,32 +1,37 @@
-# Next.js template
+# Nexa
 
-This is a Next.js template with shadcn/ui.
+> ⚠️ **Projeto em desenvolvimento**
+>
+> Este repositório ainda está em construção e pode receber mudanças frequentes em funcionalidades, estrutura e APIs.
 
-## Adding components
+Nexa é uma aplicação social construída com Next.js, React e Prisma. O projeto inclui autenticação (e-mail/senha e Google), feed de posts, comentários, curtidas e perfis de usuário.
 
-To add components to your app, run the following command:
+## Stack principal
+
+- Next.js 16
+- React 19
+- TypeScript
+- Prisma + PostgreSQL
+- Better Auth
+- Tailwind CSS
+
+## Funcionalidades atuais
+
+- Cadastro e login com e-mail/senha
+- Login social com Google (opcional)
+- Feed de publicações
+- Criação de posts com imagem
+- Comentários e curtidas
+- Perfil de usuário e conexões
+
+## Pré-requisitos
+
+- Node.js 20+
+- npm 10+
+- Banco PostgreSQL
+
+## Instalação e execução local
 
 ```bash
-npx shadcn@latest add button
-```
-
-This will place the ui components in the `components` directory.
-
-## Using components
-
-To use the components in your app, import them as follows:
-
-```tsx
-import { Button } from "@/components/ui/button";
-```
-
-## Environment variables
-
-Set the database and application URL variables required by the local setup. Google login is enabled when both values below are present:
-
-```env
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-```
-
-For Google OAuth, use the callback URL `/api/auth/callback/google` on the same origin as the app.
+npm install
+npm run dev
