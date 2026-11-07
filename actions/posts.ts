@@ -5,8 +5,8 @@ import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { cacheLife, cacheTag, updateTag } from "next/cache"
 import type { FeedPost, PostsPage } from "@/types/post"
-import { postInputSchema } from "@/types/schemas"
 import { consumeRateLimit } from "@/lib/rate-limit"
+import { sendOneSignalNotification } from "@/lib/onesignal"
 
 const PAGE_SIZE = 10
 
@@ -63,6 +63,7 @@ function mapPost(
       image: post.user.image,
       user_apelido: post.user.user_apelido,
       jaSeguindo: followingSet.has(post.user.id),
+      isOwnPost: post.user.id === currentUserId,
     },
     likedByCurrentUser: post.postCurtidas.some(({ user_id }) => user_id === currentUserId),
   }
@@ -146,42 +147,6 @@ async function getCachedPosts(cursor: string | null, userId: string | undefined,
     hasMore,
   }
 }
-export async function createPost(formData: {
-  titulo: string
-  conteudo: string
-}) {
-  try {
-    const userId = await getAuthenticatedUser()
-    const parsedInput = postInputSchema.safeParse(formData)
-    if (!parsedInput.success) return { success: false, error: "Dados inválidos." }
-    const rateLimit = await consumeRateLimit(`posts:create:user:${userId}`, { limit: 20, windowMs: 60_000 })
-    if (!rateLimit.allowed) return { success: false, error: "Muitas tentativas. Tente novamente mais tarde." }
-
-    await prisma.post.create({
-      data: {
-        post_titulo: parsedInput.data.titulo,
-        post_conteudo: parsedInput.data.conteudo,
-        post_image_path: null,
-        user_id: userId,
-      },
-    })
-
-    updateTag("posts")
-
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { user_apelido: true },
-    })
-
-    if (user) {
-      updateTag(`user-posts:${user.user_apelido}`)
-    }
-    return { success: true }
-  } catch (error) {
-    console.error("Erro ao criar post:", error)
-    return { success: false, error: "Erro ao criar a publicação" }
-  }
-}
 
 export async function toggleCurtidaPost(postId: string) {
   try {
@@ -189,14 +154,25 @@ export async function toggleCurtidaPost(postId: string) {
     const rateLimit = await consumeRateLimit(`posts:like:user:${userId}`, { limit: 60, windowMs: 60_000 })
     if (!rateLimit.allowed) return { success: false, error: "Muitas tentativas. Tente novamente mais tarde." }
 
-    const existentLike = await prisma.post_curtidas.findUnique({
+    const [existentLike, post] = await Promise.all([
+      prisma.post_curtidas.findUnique({
       where: {
         post_id_user_id: {
           post_id: postId,
           user_id: userId,
         },
       },
-    })
+      }),
+      prisma.post.findUnique({
+        where: { post_id: postId },
+        select: {
+          user_id: true,
+          post_titulo: true,
+        },
+      }),
+    ])
+
+    if (!post) return { success: false, error: "Publicação não encontrada." }
 
     if (existentLike) {
       await prisma.$transaction([
@@ -214,18 +190,49 @@ export async function toggleCurtidaPost(postId: string) {
         }),
       ])
     } else {
-      await prisma.$transaction([
-        prisma.post_curtidas.create({
+      await prisma.$transaction(async (transaction) => {
+        await transaction.post_curtidas.create({
           data: {
             post_id: postId,
             user_id: userId,
           },
-        }),
-        prisma.post.update({
+        })
+        await transaction.post.update({
           where: { post_id: postId },
           data: { post_ncurtidas: { increment: 1 } },
-        }),
-      ])
+        })
+
+        if (post.user_id !== userId) {
+          await transaction.notification.create({
+            data: {
+              recipient_id: post.user_id,
+              actor_id: userId,
+              type: "POST_LIKE",
+              post_id: postId,
+            },
+          })
+        }
+      })
+
+      if (post.user_id !== userId) {
+        const actor = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { name: true },
+        })
+
+        if (actor) {
+          try {
+            await sendOneSignalNotification({
+              externalIds: [post.user_id],
+              title: "Nova curtida",
+              message: `${actor.name} curtiu seu post "${post.post_titulo}".`,
+              url: `/dashboard`,
+            })
+          } catch (error) {
+            console.error("Não foi possível enviar a notificação de curtida:", error)
+          }
+        }
+      }
     }
 
     updateTag("posts")

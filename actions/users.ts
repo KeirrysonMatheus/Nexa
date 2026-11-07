@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth"
 import { cacheLife, cacheTag, revalidatePath, updateTag } from "next/cache"
 import { prisma } from "@/app/client"
 import { consumeRateLimit } from "@/lib/rate-limit"
+import { sendOneSignalNotification } from "@/lib/onesignal"
 export async function getAuthenticatedUserId() {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -172,6 +173,14 @@ export async function toggleFollowAction(targetUserId: string) {
         where: { id: targetUserId },
         data: { user_nseguidores: { increment: 1 } },
       })
+
+      await tx.notification.create({
+        data: {
+          recipient_id: targetUserId,
+          actor_id: currentUserId,
+          type: "NEW_FOLLOWER",
+        },
+      })
     }
   })
 
@@ -190,6 +199,19 @@ export async function toggleFollowAction(targetUserId: string) {
   if (targetUser) updateTag(`user-profile:${targetUser.user_apelido}`)
   if (currentUser) updateTag(`user-profile:${currentUser.user_apelido}`)
   revalidatePath("/", "layout")
+
+  if (!jaSeguindo && targetUser && currentUser) {
+    try {
+      await sendOneSignalNotification({
+        externalIds: [targetUserId],
+        title: "Novo seguidor",
+        message: `${currentUser.user_apelido} começou a seguir você.`,
+        url: `/users/${currentUser.user_apelido}`,
+      })
+    } catch (error) {
+      console.error("Não foi possível enviar a notificação de novo seguidor:", error)
+    }
+  }
 
   return { success: true, following: !jaSeguindo }
 }

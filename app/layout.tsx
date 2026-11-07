@@ -1,6 +1,6 @@
 import { Geist_Mono, DM_Sans } from "next/font/google"
 import type { Metadata } from "next"
-
+import OneSignalInit from "@/components/OneSignalInit"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils";
@@ -34,6 +34,7 @@ export default function RootLayout({
       className={cn("antialiased", fontMono.variable, "font-sans", dmSans.variable)}
     >
       <body>
+        <OneSignalInit />
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

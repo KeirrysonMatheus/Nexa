@@ -29,6 +29,12 @@ model user {
   postCurtidas     post_curtidas[]
   seguidos         seguidores[]       @relation("UsuarioSeguido")
   seguidores       seguidores[]       @relation("UsuarioSeguidor")
+
+  notificationsSent notification[] @relation("NotificationActor")
+
+  notificationsReceived notification[] @relation("NotificationRecipient")
+
+  pushSubscriptions push_subscription[]
 }
 
 model account {
@@ -86,6 +92,7 @@ model post {
   user             user               @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_post_usuario")
   post_comentarios post_comentarios[]
   postCurtidas     post_curtidas[]
+  notifications    notification[]
 
   @@index([user_id], map: "idx_post_usuario")
 }
@@ -130,4 +137,35 @@ model rate_limit_bucket {
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
 
   @@index([resetAt])
+}
+
+model notification {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipient_id String    @db.Uuid
+  actor_id     String    @db.Uuid
+  type         String    @db.VarChar(50)
+  readAt       DateTime? @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @db.Timestamptz(6)
+  post_id      String?   @db.Uuid
+
+  recipient user  @relation("NotificationRecipient", fields: [recipient_id], references: [id], onDelete: Cascade)
+  actor     user  @relation("NotificationActor", fields: [actor_id], references: [id], onDelete: Cascade)
+  post      post? @relation(fields: [post_id], references: [post_id], onDelete: Cascade)
+
+  @@index([recipient_id, createdAt])
+  @@index([recipient_id, readAt])
+}
+
+model push_subscription {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id   String   @db.Uuid
+  endpoint  String   @unique @db.VarChar(512)
+  p256dh    String   @db.VarChar(255)
+  auth      String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  user user @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
 }

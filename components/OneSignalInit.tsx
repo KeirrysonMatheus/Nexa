@@ -1,11 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import OneSignal from "react-onesignal";
+import { authClient } from "@/lib/auth-client";
 
 export default function OneSignalInit() {
+  const { data: session, isPending } = authClient.useSession();
+  const initialization = useRef<Promise<void> | null>(null);
+
   useEffect(() => {
     const appId = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID;
+
+    if (isPending) return;
 
     if (!appId) {
       console.error(
@@ -14,7 +20,7 @@ export default function OneSignalInit() {
       return;
     }
 
-    void OneSignal.init({
+    initialization.current ??= OneSignal.init({
       appId,
       serviceWorkerPath: "/OneSignalSDKWorker.js",
       notifyButton: {
@@ -40,10 +46,20 @@ export default function OneSignalInit() {
         },
       },
       allowLocalhostAsSecureOrigin: process.env.NODE_ENV === "development",
-    }).catch((error: unknown) => {
-      console.error("OneSignal failed to initialize.", error);
     });
-  }, []);
+
+    void initialization.current
+      .then(async () => {
+        if (session?.user?.id) {
+          await OneSignal.login(session.user.id);
+        } else {
+          await OneSignal.logout();
+        }
+      })
+      .catch((error: unknown) => {
+        console.error("OneSignal failed to initialize or identify the user.", error);
+      });
+  }, [isPending, session?.user?.id]);
 
   return null;
 }

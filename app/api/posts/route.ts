@@ -6,6 +6,8 @@ import { removeStoredFile, saveImageFile } from "@/lib/upload"
 import { isAllowedMutationOrigin } from "@/lib/request-security"
 import { enforceRequestRateLimit } from "@/lib/rate-limit"
 import { postInputSchema } from "@/types/schemas"
+import { updateTag } from "next/cache"
+import { sendOneSignalNotification } from "@/lib/onesignal"
 
 export async function POST(request: Request) {
   if (!isAllowedMutationOrigin(request)) {
@@ -38,17 +40,53 @@ export async function POST(request: Request) {
       ? await saveImageFile(image, "posts")
       : null
 
-    const post = await prisma.post.create({
-      data: {
-        post_titulo: parsedInput.data.titulo,
-        post_conteudo: parsedInput.data.conteudo,
-        post_image_path: imagePath,
-        user_id: session.user.id,
-      },
-      select: { post_id: true },
-    })
+    const { createdPost, followerIds } = await prisma.$transaction(async (transaction) => {
+      const createdPost = await transaction.post.create({
+        data: {
+          post_titulo: parsedInput.data.titulo,
+          post_conteudo: parsedInput.data.conteudo,
+          post_image_path: imagePath,
+          user_id: session.user.id,
+        },
+        select: { post_id: true },
+      })
 
-    return NextResponse.json({ postId: post.post_id }, { status: 201 })
+      const followers = await transaction.seguidores.findMany({
+        where: { seguido_id: session.user.id },
+        select: { seguidor_id: true },
+      })
+
+      if (followers.length > 0) {
+        await transaction.notification.createMany({
+          data: followers.map(({ seguidor_id }) => ({
+            recipient_id: seguidor_id,
+            actor_id: session.user.id,
+            type: "NEW_POST",
+            post_id: createdPost.post_id,
+          })),
+        })
+      }
+
+      return {
+        createdPost,
+        followerIds: followers.map(({ seguidor_id }) => seguidor_id),
+      }
+    })
+    updateTag("posts")
+
+    if (followerIds.length > 0) {
+      try {
+        await sendOneSignalNotification({
+          externalIds: followerIds,
+          title: "Nova publicação",
+          message: `${session.user.name} publicou "${parsedInput.data.titulo}".`,
+          url: "/dashboard",
+        })
+      } catch (error) {
+        console.error("Não foi possível enviar as notificações de novo post:", error)
+      }
+    }
+    return NextResponse.json({ postId: createdPost.post_id }, { status: 201 })
   } catch (error) {
     await removeStoredFile(imagePath)
     if (error instanceof Error && (error.message.includes("imagem") || error.message.includes("Formato"))) {
