@@ -1,72 +1,69 @@
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { Bookmark, Share2 } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Image from "next/image"
 import Link from "next/link"
 import FollowButton from "@/components/ui/follow-button"
 import { DeleteButton } from "@/components/delete-button"
 import { LikeButton } from "@/components/like-button"
 import { LikesDialog } from "@/components/likes-dialog"
+import type { FeedPost } from "@/types/post"
 
-interface PostCardProps {
-  post_id: string
-  post_titulo: string
-  post_conteudo: string
-  post_image_url?: string
-  post_data: Date
-  post_ncurtidas: number
-  likedByCurrentUser: boolean
-  curtidas: {
-    id: string
-    name: string
-    image: string | null
-    user_apelido: string
-  }[]
-  user: {
-    id: string
-    name: string
-    image: string | null
-    user_apelido: string
-    jaSeguindo?: boolean
-    isOwnPost: boolean
-  }
+type PostCardProps = {
+  post: FeedPost
 }
 
-const PostCard = ({
-  post_id,
-  post_conteudo,
-  post_titulo,
-  user,
-  post_data,
-  post_image_url,
-  post_ncurtidas,
-  likedByCurrentUser,
-  curtidas,
-}: PostCardProps) => {
-  const postDataBR = post_data
-    ? new Date(post_data).toLocaleDateString("pt-BR", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      })
-    : "Data indisponível"
+function formatPostDate(isoDate: string) {
+  const date = new Date(isoDate)
+  if (Number.isNaN(date.getTime())) return "Data indisponível"
+
+  return date.toLocaleDateString("pt-BR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  })
+}
+
+const PostCard = ({ post }: PostCardProps) => {
+  const {
+    post_id,
+    post_conteudo,
+    post_titulo,
+    user,
+    post_data,
+    post_image_url,
+    post_ncurtidas,
+    likedByCurrentUser,
+    curtidas,
+  } = post
+
   const profileHref = `/users/${user.user_apelido}`
+  const hasImage = Boolean(post_image_url?.trim())
 
   return (
     <Card className="w-full overflow-hidden border-border/70 bg-card/95 shadow-sm transition-all duration-200">
       <CardHeader className="border-b border-border/50 bg-muted/15 px-4 py-3">
         <div className="flex w-full items-center justify-between gap-3">
           <div className="flex min-w-0 flex-1 items-center gap-3">
-            <Link href={profileHref} className="shrink-0 transition-opacity hover:opacity-80">
-              {user.image ? (
-                <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-border shadow-sm">
-                  <Image  unoptimized src={user.image} alt={`Avatar de ${user.name}`} fill className="object-cover" />
-                </div>
-              ) : (
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-secondary text-sm font-semibold text-secondary-foreground">
+            <Link
+              href={profileHref}
+              className="shrink-0 transition-opacity hover:opacity-80"
+            >
+              <Avatar size="lg" className="border border-border shadow-sm">
+                <AvatarImage
+                  src={user.image ?? undefined}
+                  alt={`Avatar de ${user.name}`}
+                />
+                <AvatarFallback>
                   {user.name.charAt(0).toUpperCase()}
-                </div>
-              )}
+                </AvatarFallback>
+              </Avatar>
             </Link>
 
             <div className="flex min-w-0 flex-1 flex-col">
@@ -85,7 +82,9 @@ const PostCard = ({
                   @{user.user_apelido}
                 </Link>
                 <span className="text-[10px] text-muted-foreground/50">•</span>
-                <span className="whitespace-nowrap">{postDataBR}</span>
+                <span className="whitespace-nowrap">
+                  {formatPostDate(post_data)}
+                </span>
               </div>
             </div>
           </div>
@@ -95,7 +94,7 @@ const PostCard = ({
               <DeleteButton postId={post_id} />
             ) : (
               <FollowButton
-                initialJaSeguindo={user.jaSeguindo || false}
+                initialJaSeguindo={user.jaSeguindo}
                 targetUserId={user.id}
               />
             )}
@@ -112,12 +111,12 @@ const PostCard = ({
             {post_conteudo}
           </p>
         </div>
-        {post_image_url && post_image_url.trim() !== "" && (
+        {hasImage && (
           <div className="relative aspect-16/10 w-full overflow-hidden rounded-xl border border-border/60 bg-muted/20 shadow-sm">
             <Image
-            unoptimized
+              unoptimized
               alt={post_titulo}
-              src={post_image_url}
+              src={post_image_url!}
               fill
               sizes="(max-width: 768px) 100vw, 576px"
               className="object-contain"
@@ -137,24 +136,6 @@ const PostCard = ({
           initialCount={post_ncurtidas}
         />
         <LikesDialog count={post_ncurtidas} likes={curtidas} />
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            aria-label="Salvar publicação"
-            title="Salvar publicação"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
-          >
-            <Bookmark className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            aria-label="Compartilhar publicação"
-            title="Compartilhar publicação"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
-          >
-            <Share2 className="h-4 w-4" />
-          </button>
-        </div>
       </CardFooter>
     </Card>
   )

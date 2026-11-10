@@ -1,125 +1,41 @@
 "use server"
 
 import { prisma } from "@/app/client"
-import { auth } from "@/lib/auth"
-import { headers } from "next/headers"
+import { getAuthenticatedUserId } from "@/actions/users"
 import { cacheLife, cacheTag, updateTag } from "next/cache"
-import type { FeedPost, PostsPage } from "@/types/post"
+import type { ActionResult, PostsPage } from "@/types/post"
 import { consumeRateLimit } from "@/lib/rate-limit"
 import { enqueueOneSignalNotification } from "@/lib/onesignal"
+import { PAGE_SIZE, feedPostInclude, mapFeedPost } from "@/lib/posts/feed"
 
-const PAGE_SIZE = 10
-
-async function getAuthenticatedUser() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  })
-
-  if (!session || !session.user) {
-    throw new Error("Usuário não autenticado.")
-  }
-
-  return session.user.id
-}
-
-function mapPost(
-  post: {
-    post_id: string
-    post_titulo: string
-    post_conteudo: string
-    post_image_path: string | null
-    post_data: Date
-    post_ncurtidas: number
-    user: {
-      id: string
-      name: string
-      image: string | null
-      user_apelido: string
-    }
-    postCurtidas: {
-      user_id: string
-      user: {
-        id: string
-        name: string
-        image: string | null
-        user_apelido: string
-      }
-    }[]
-  },
-  followingSet: Set<string>,
-  currentUserId: string
-): FeedPost {
-  return {
-    post_id: post.post_id,
-    post_titulo: post.post_titulo,
-    post_conteudo: post.post_conteudo,
-    post_image_url: post.post_image_path || undefined,
-    post_data: post.post_data.toISOString(),
-    post_ncurtidas: post.post_ncurtidas,
-    curtidas: post.postCurtidas.map(({ user }) => user),
-    user: {
-      id: post.user.id,
-      name: post.user.name,
-      image: post.user.image,
-      user_apelido: post.user.user_apelido,
-      jaSeguindo: followingSet.has(post.user.id),
-      isOwnPost: post.user.id === currentUserId,
-    },
-    likedByCurrentUser: post.postCurtidas.some(({ user_id }) => user_id === currentUserId),
-  }
-}
 export async function getPosts(options?: {
   cursor?: string | null
   userId?: string
 }): Promise<PostsPage> {
-  const currentUserId = await getAuthenticatedUser()
+  const currentUserId = await getAuthenticatedUserId()
   return getCachedPosts(options?.cursor || null, options?.userId, currentUserId)
 }
 
-async function getCachedPosts(cursor: string | null, userId: string | undefined, currentUserId: string) {
+async function getCachedPosts(
+  cursor: string | null,
+  userId: string | undefined,
+  currentUserId: string,
+) {
   "use cache"
   cacheLife("minutes")
   cacheTag("posts")
   if (userId) cacheTag(`user-posts:${userId}`)
 
-  const postCursor = cursor || undefined
-
   const posts = await prisma.post.findMany({
     take: PAGE_SIZE + 1,
-    ...(postCursor
+    ...(cursor
       ? {
           skip: 1,
-          cursor: { post_id: postCursor },
+          cursor: { post_id: cursor },
         }
       : {}),
-    ...(userId
-      ? {
-          where: { user_id: userId },
-        }
-      : {}),
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          image: true,
-          user_apelido: true,
-        },
-      },
-      postCurtidas: {
-        select: {
-          user_id: true,
-          user: {
-            select: {
-              id: true,
-              name: true,
-              image: true,
-              user_apelido: true,
-            },
-          },
-        },
-      },
-    },
+    ...(userId ? { where: { user_id: userId } } : {}),
+    include: feedPostInclude,
     orderBy: [{ post_data: "desc" }, { post_id: "desc" }],
   })
 
@@ -139,7 +55,7 @@ async function getCachedPosts(cursor: string | null, userId: string | undefined,
       : []
 
   const followingSet = new Set(follows.map((follow) => follow.seguido_id))
-  const mapped = page.map((post) => mapPost(post, followingSet, currentUserId))
+  const mapped = page.map((post) => mapFeedPost(post, followingSet, currentUserId))
 
   return {
     posts: mapped,
@@ -148,20 +64,25 @@ async function getCachedPosts(cursor: string | null, userId: string | undefined,
   }
 }
 
-export async function toggleCurtidaPost(postId: string) {
+export async function toggleCurtidaPost(postId: string): Promise<ActionResult> {
   try {
-    const userId = await getAuthenticatedUser()
-    const rateLimit = await consumeRateLimit(`posts:like:user:${userId}`, { limit: 60, windowMs: 60_000 })
-    if (!rateLimit.allowed) return { success: false, error: "Muitas tentativas. Tente novamente mais tarde." }
+    const userId = await getAuthenticatedUserId()
+    const rateLimit = await consumeRateLimit(`posts:like:user:${userId}`, {
+      limit: 60,
+      windowMs: 60_000,
+    })
+    if (!rateLimit.allowed) {
+      return { success: false, error: "Muitas tentativas. Tente novamente mais tarde." }
+    }
 
     const [existentLike, post] = await Promise.all([
       prisma.post_curtidas.findUnique({
-      where: {
-        post_id_user_id: {
-          post_id: postId,
-          user_id: userId,
+        where: {
+          post_id_user_id: {
+            post_id: postId,
+            user_id: userId,
+          },
         },
-      },
       }),
       prisma.post.findUnique({
         where: { post_id: postId },
@@ -242,16 +163,18 @@ export async function toggleCurtidaPost(postId: string) {
   }
 }
 
-export async function deletePost(postId: string) {
+export async function deletePost(postId: string): Promise<ActionResult> {
   try {
-    const userId = await getAuthenticatedUser()
+    const userId = await getAuthenticatedUserId()
     const post = await prisma.post.findUnique({
       where: { post_id: postId },
       select: { user_id: true, user: { select: { user_apelido: true } } },
     })
 
     if (!post) return { success: false, error: "Post não encontrado." }
-    if (post.user_id !== userId) return { success: false, error: "Você não pode remover este post." }
+    if (post.user_id !== userId) {
+      return { success: false, error: "Você não pode remover este post." }
+    }
 
     await prisma.post.delete({ where: { post_id: postId } })
     updateTag("posts")

@@ -1,23 +1,88 @@
 "use client"
 
-import { Spinner } from "./ui/spinner";
+import { Spinner } from "./ui/spinner"
 import { cn } from "@/lib/utils"
-import { signUpFormSchema, SignUpFormData } from "@/types/schemas";
+import { signUpFormSchema, type SignUpFormData } from "@/types/schemas"
 import { Button } from "@/components/ui/button"
-import { Field, FieldDescription, FieldGroup, FieldLabel, FieldSeparator } from "@/components/ui/field"
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  FieldSeparator,
+} from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { authClient } from "@/lib/auth-client"
+import { FormFieldError } from "@/components/form-field-error"
+import { GoogleAuthButton } from "@/components/google-auth-button"
 
+type SignupField = {
+  name: keyof SignUpFormData
+  label: string
+  id: string
+  type?: "text" | "email" | "password"
+  placeholder?: string
+  description?: string
+  autoComplete?: string
+}
 
-export function SignupForm({ className, ...props }: React.ComponentProps<"form">) {
+const SIGNUP_FIELDS: SignupField[] = [
+  {
+    name: "name",
+    label: "Nome e Sobrenome",
+    id: "nome",
+    placeholder: "John Doe",
+    autoComplete: "name",
+  },
+  {
+    name: "nickname",
+    label: "Apelido (Username)",
+    id: "nickname",
+    placeholder: "johndoe_99",
+    description: "Seu identificador único na plataforma.",
+    autoComplete: "username",
+  },
+  {
+    name: "email",
+    label: "Email",
+    id: "email",
+    type: "email",
+    placeholder: "m@example.com",
+    description:
+      "Nós usaremos seu email para contatar você. Não compartilharemos seu email com ninguém.",
+    autoComplete: "email",
+  },
+  {
+    name: "password",
+    label: "Senha",
+    id: "password",
+    type: "password",
+    description: "Deve conter pelo menos 8 caracteres",
+    autoComplete: "new-password",
+  },
+  {
+    name: "confirmPassword",
+    label: "Confirmar senha",
+    id: "confirm-password",
+    type: "password",
+    description: "Por favor, confirme sua senha",
+    autoComplete: "new-password",
+  },
+]
+
+export function SignupForm({
+  className,
+  ...props
+}: React.ComponentProps<"form">) {
   const [isLoading, setIsLoading] = useState(false)
   const [globalError, setGlobalError] = useState<string | null>(null)
   const router = useRouter()
-  
+
   const form = useForm<SignUpFormData>({
     resolver: zodResolver(signUpFormSchema),
     defaultValues: {
@@ -26,54 +91,51 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"form">
       email: "",
       password: "",
       confirmPassword: "",
-    }
+    },
   })
 
   const onSubmit = async (values: SignUpFormData) => {
-  setIsLoading(true)
-  setGlobalError(null)
+    setIsLoading(true)
+    setGlobalError(null)
 
-  const { error: authError } = await authClient.signUp.email({
-    email: values.email.trim(),
-    password: values.password,
-    name: values.name.trim(),
-    user_apelido: values.nickname.trim(),
-  })
-  
-  setIsLoading(false)
+    const { error: authError } = await authClient.signUp.email({
+      email: values.email.trim(),
+      password: values.password,
+      name: values.name.trim(),
+      user_apelido: values.nickname.trim(),
+    })
 
-  if (authError) {
-    
-    if (authError.code === "EMAIL_ALREADY_EXISTS") {
-      form.setError("email", {
-        type: "manual",
-        message: authError.message
-      })
+    setIsLoading(false)
+
+    if (authError) {
+      if (authError.code === "EMAIL_ALREADY_EXISTS") {
+        form.setError("email", {
+          type: "manual",
+          message: authError.message,
+        })
+        return
+      }
+
+      if (authError.code === "NICKNAME_ALREADY_EXISTS") {
+        form.setError("nickname", {
+          type: "manual",
+          message: authError.message,
+        })
+        return
+      }
+
+      setGlobalError(authError.message || "Erro ao tentar registrar.")
       return
     }
 
-    if (authError.code === "NICKNAME_ALREADY_EXISTS") {
-      form.setError("nickname", {
-        type: "manual",
-        message: authError.message
-      })
-      return
-    }
-
-  
-    setGlobalError(authError.message || "Erro ao tentar registrar.")
-    return
+    router.push("/dashboard")
+    router.refresh()
   }
 
-
-  router.push("/dashboard")
-  router.refresh()
-}
-
   return (
-    <form 
-      onSubmit={form.handleSubmit(onSubmit)} 
-      className={cn("flex flex-col gap-6", className)} 
+    <form
+      onSubmit={form.handleSubmit(onSubmit)}
+      className={cn("flex flex-col gap-6", className)}
       {...props}
     >
       <FieldGroup>
@@ -85,116 +147,69 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"form">
         </div>
 
         {globalError && (
-          <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-md text-sm text-red-600 dark:text-red-400 text-center">
+          <div
+            role="alert"
+            className="rounded-md border border-destructive/25 bg-destructive/10 p-3 text-center text-sm text-destructive"
+          >
             {globalError}
           </div>
         )}
 
-        {/* Nome */}
-        <Controller
-          name="name"
-          control={form.control}
-          render={({ field }) => (
-            <Field>
-              <FieldLabel htmlFor="nome">Nome e Sobrenome</FieldLabel>
-              <Input {...field} id="nome" type="text" placeholder="John Doe" className="bg-background" disabled={isLoading} />
-              {form.formState.errors.name && (
-                <p className="text-xs text-red-500">{form.formState.errors.name.message}</p>
-              )}
-            </Field>
-          )}
-        />
-
-        {/* Apelido */}
-        <Controller
-          name="nickname"
-          control={form.control}
-          render={({ field }) => (
-            <Field>
-              <FieldLabel htmlFor="nickname">Apelido (Username)</FieldLabel>
-              <Input {...field} id="nickname" type="text" placeholder="johndoe_99" className="bg-background" disabled={isLoading} />
-              <FieldDescription>Seu identificador único na plataforma.</FieldDescription>
-              {form.formState.errors.nickname && (
-                <p className="text-xs text-red-500">{form.formState.errors.nickname.message}</p>
-              )}
-            </Field>
-          )}
-        />
-
-        {/* Email */}
-        <Controller
-          name="email"
-          control={form.control}
-          render={({ field }) => (
-            <Field>
-              <FieldLabel htmlFor="email">Email</FieldLabel>
-              <Input {...field} id="email" type="email" placeholder="m@example.com" className="bg-background" disabled={isLoading} />
-              <FieldDescription>
-                Nós usaremos seu email para contatar você. Não compartilharemos seu email com ninguém.
-              </FieldDescription>
-              {form.formState.errors.email && (
-                <p className="text-xs text-red-500">{form.formState.errors.email.message}</p>
-              )}
-            </Field>
-          )}
-        />
-
-        {/* Senha */}
-        <Controller
-          name="password"
-          control={form.control}
-          render={({ field }) => (
-            <Field>
-              <FieldLabel htmlFor="password">Senha</FieldLabel>
-              <Input {...field} id="password" type="password" className="bg-background" disabled={isLoading} />
-              <FieldDescription>Deve conter pelo menos 8 caracteres</FieldDescription>
-              {form.formState.errors.password && (
-                <p className="text-xs text-red-500">{form.formState.errors.password.message}</p>
-              )}
-            </Field>
-          )}
-        />
-
-        {/* Confirmar Senha */}
-        <Controller
-          name="confirmPassword"
-          control={form.control}
-          render={({ field }) => (
-            <Field>
-              <FieldLabel htmlFor="confirm-password">Confirmar senha</FieldLabel>
-              <Input {...field} id="confirm-password" type="password" className="bg-background" disabled={isLoading} />
-              <FieldDescription>Por favor, confirme sua senha</FieldDescription>
-              {form.formState.errors.confirmPassword && (
-                <p className="text-xs text-red-500">{form.formState.errors.confirmPassword.message}</p>
-              )}
-            </Field>
-          )}
-        />
+        {SIGNUP_FIELDS.map((fieldConfig) => (
+          <Controller
+            key={fieldConfig.name}
+            name={fieldConfig.name}
+            control={form.control}
+            render={({ field }) => (
+              <Field>
+                <FieldLabel htmlFor={fieldConfig.id}>{fieldConfig.label}</FieldLabel>
+                <Input
+                  {...field}
+                  id={fieldConfig.id}
+                  type={fieldConfig.type ?? "text"}
+                  placeholder={fieldConfig.placeholder}
+                  autoComplete={fieldConfig.autoComplete}
+                  className="bg-background"
+                  disabled={isLoading}
+                />
+                {fieldConfig.description && (
+                  <FieldDescription>{fieldConfig.description}</FieldDescription>
+                )}
+                <FormFieldError
+                  message={form.formState.errors[fieldConfig.name]?.message}
+                />
+              </Field>
+            )}
+          />
+        ))}
 
         <Field>
-          <Button type="submit" className="w-full flex items-center justify-center gap-2" disabled={isLoading}>
+          <Button
+            type="submit"
+            className="flex w-full items-center justify-center gap-2"
+            disabled={isLoading}
+          >
             {isLoading ? "Criando conta..." : "Criar conta"}
-            {isLoading && <Spinner className="w-4 h-4" />}
+            {isLoading && <Spinner className="size-4" />}
           </Button>
         </Field>
 
         <FieldSeparator>Ou continue com</FieldSeparator>
 
         <Field>
-          <Button variant="outline" type="button" className="w-full" disabled={isLoading}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-4 h-4 mr-2">
-              <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z" fill="currentColor" />
-            </svg>
-            Cadastre-se com Google
-          </Button>
-          <FieldDescription className="px-6 text-center mt-2">
+          <GoogleAuthButton
+            label="Cadastre-se com Google"
+            disabled={isLoading}
+            className="w-full"
+          />
+          <FieldDescription className="mt-2 px-6 text-center">
             Já tem uma conta?{" "}
-            <a
+            <Link
               href="/authenticate/login"
               className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
             >
               Faça login
-            </a>
+            </Link>
           </FieldDescription>
         </Field>
       </FieldGroup>
