@@ -5,6 +5,8 @@ type OneSignalNotification = {
   message: string
   externalIds: string[]
   url?: string
+  /** A stable event identifier that makes a retry safe to send. */
+  idempotencyKey: string
 }
 
 function getOneSignalAppId() {
@@ -16,6 +18,7 @@ export async function sendOneSignalNotification({
   message,
   externalIds,
   url,
+  idempotencyKey,
 }: OneSignalNotification) {
   const appId = getOneSignalAppId()
   const apiKey = process.env.ONESIGNAL_REST_API_KEY
@@ -44,6 +47,7 @@ export async function sendOneSignalNotification({
       include_aliases: { external_id: recipients },
       headings: { pt: title, en: title },
       contents: { pt: message, en: message },
+      idempotency_key: idempotencyKey,
       ...(notificationUrl ? { url: notificationUrl } : {}),
     }),
   })

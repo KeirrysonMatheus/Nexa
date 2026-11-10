@@ -207,6 +207,7 @@ export async function toggleFollowAction(targetUserId: string) {
         title: "Novo seguidor",
         message: `${currentUser.user_apelido} começou a seguir você.`,
         url: `/users/${currentUser.user_apelido}`,
+        idempotencyKey: `new-follower:${currentUserId}:${targetUserId}`,
       },
       "novo seguidor",
     )
