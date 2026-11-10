@@ -1,8 +1,14 @@
+import { after } from "next/server"
+
 type OneSignalNotification = {
   title: string
   message: string
   externalIds: string[]
   url?: string
+}
+
+function getOneSignalAppId() {
+  return process.env.ONESIGNAL_APP_ID ?? process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID
 }
 
 export async function sendOneSignalNotification({
@@ -11,12 +17,12 @@ export async function sendOneSignalNotification({
   externalIds,
   url,
 }: OneSignalNotification) {
-  const appId = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID
+  const appId = getOneSignalAppId()
   const apiKey = process.env.ONESIGNAL_REST_API_KEY
 
   if (!appId || !apiKey) {
     throw new Error(
-      "OneSignal push is not configured: NEXT_PUBLIC_ONESIGNAL_APP_ID and ONESIGNAL_REST_API_KEY are required.",
+      "OneSignal push is not configured: ONESIGNAL_APP_ID (or NEXT_PUBLIC_ONESIGNAL_APP_ID) and ONESIGNAL_REST_API_KEY are required.",
     )
   }
 
@@ -26,7 +32,7 @@ export async function sendOneSignalNotification({
   const appUrl = process.env.NEXT_PUBLIC_URL
   const notificationUrl = url && appUrl ? new URL(url, appUrl).toString() : undefined
 
-  const response = await fetch("https://api.onesignal.com/notifications", {
+  const response = await fetch("https://api.onesignal.com/notifications?c=push", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -42,10 +48,30 @@ export async function sendOneSignalNotification({
     }),
   })
 
-  if (!response.ok) {
-    const responseBody = await response.text()
+  const responseBody = await response.text()
+  let parsed: { id?: string; errors?: unknown } | null = null
+  try {
+    parsed = JSON.parse(responseBody) as { id?: string; errors?: unknown }
+  } catch {
+    parsed = null
+  }
+
+  const softErrors = Array.isArray(parsed?.errors) ? parsed.errors : []
+  if (!response.ok || softErrors.length > 0) {
     throw new Error(
       `OneSignal rejected the notification (${response.status}): ${responseBody}`,
     )
   }
+}
+
+/** Keeps the Vercel/serverless invocation alive until the push request finishes. */
+export function enqueueOneSignalNotification(
+  notification: OneSignalNotification,
+  context: string,
+) {
+  after(() =>
+    sendOneSignalNotification(notification).catch((error: unknown) => {
+      console.error(`Não foi possível enviar a notificação (${context}):`, error)
+    }),
+  )
 }

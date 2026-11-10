@@ -22,7 +22,8 @@ export default function OneSignalInit() {
 
     initialization.current ??= OneSignal.init({
       appId,
-      serviceWorkerPath: "/OneSignalSDKWorker.js",
+      serviceWorkerPath: "OneSignalSDKWorker.js",
+      serviceWorkerParam: { scope: "/" },
       notifyButton: {
         enable: true,
         prenotify: true,
