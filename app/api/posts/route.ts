@@ -81,6 +81,7 @@ export async function POST(request: Request) {
           title: "Nova publicação",
           message: `${session.user.name} publicou "${parsedInput.data.titulo}".`,
           url: "/dashboard",
+          idempotencyKey: `new-post:${createdPost.post_id}`,
         },
         "novo post",
       )

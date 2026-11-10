@@ -148,6 +148,7 @@ export async function toggleCurtidaPost(postId: string): Promise<ActionResult> {
               title: "Nova curtida",
               message: `${actor.name} curtiu seu post "${post.post_titulo}".`,
               url: `/dashboard`,
+              idempotencyKey: `post-like:${postId}:${userId}`,
             },
             "curtida",
           )
