@@ -7,7 +7,7 @@ import { isAllowedMutationOrigin } from "@/lib/request-security"
 import { enforceRequestRateLimit } from "@/lib/rate-limit"
 import { postInputSchema } from "@/types/schemas"
 import { updateTag } from "next/cache"
-import { sendOneSignalNotification } from "@/lib/onesignal"
+import { enqueueOneSignalNotification } from "@/lib/onesignal"
 
 export async function POST(request: Request) {
   if (!isAllowedMutationOrigin(request)) {
@@ -75,16 +75,15 @@ export async function POST(request: Request) {
     updateTag("posts")
 
     if (followerIds.length > 0) {
-      try {
-        await sendOneSignalNotification({
+      enqueueOneSignalNotification(
+        {
           externalIds: followerIds,
           title: "Nova publicação",
           message: `${session.user.name} publicou "${parsedInput.data.titulo}".`,
           url: "/dashboard",
-        })
-      } catch (error) {
-        console.error("Não foi possível enviar as notificações de novo post:", error)
-      }
+        },
+        "novo post",
+      )
     }
     return NextResponse.json({ postId: createdPost.post_id }, { status: 201 })
   } catch (error) {

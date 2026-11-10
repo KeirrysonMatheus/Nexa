@@ -6,7 +6,7 @@ import { headers } from "next/headers"
 import { cacheLife, cacheTag, updateTag } from "next/cache"
 import type { FeedPost, PostsPage } from "@/types/post"
 import { consumeRateLimit } from "@/lib/rate-limit"
-import { sendOneSignalNotification } from "@/lib/onesignal"
+import { enqueueOneSignalNotification } from "@/lib/onesignal"
 
 const PAGE_SIZE = 10
 
@@ -221,16 +221,15 @@ export async function toggleCurtidaPost(postId: string) {
         })
 
         if (actor) {
-          try {
-            await sendOneSignalNotification({
+          enqueueOneSignalNotification(
+            {
               externalIds: [post.user_id],
               title: "Nova curtida",
               message: `${actor.name} curtiu seu post "${post.post_titulo}".`,
               url: `/dashboard`,
-            })
-          } catch (error) {
-            console.error("Não foi possível enviar a notificação de curtida:", error)
-          }
+            },
+            "curtida",
+          )
         }
       }
     }

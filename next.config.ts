@@ -4,22 +4,26 @@ const nextConfig: NextConfig = {
 	cacheComponents: true,
 	partialPrefetching: true,
 	async headers() {
+		const oneSignalCsp = [
+			"default-src 'self'",
+			"base-uri 'self'",
+			"object-src 'none'",
+			"frame-ancestors 'none'",
+			"form-action 'self'",
+			"script-src 'self' 'unsafe-inline' https://cdn.onesignal.com https://onesignal.com",
+			"worker-src 'self' https://cdn.onesignal.com blob:",
+			"child-src 'self' https://cdn.onesignal.com blob:",
+			"style-src 'self' 'unsafe-inline' https://onesignal.com",
+			"img-src 'self' data: blob: https://*.public.blob.vercel-storage.com https://*.googleusercontent.com https://onesignal.com https://*.onesignal.com",
+			"font-src 'self' data:",
+			"connect-src 'self' https://accounts.google.com https://onesignal.com https://*.onesignal.com https://onesignal.os.tc",
+			"frame-src 'self' https://accounts.google.com https://onesignal.com https://*.onesignal.com",
+		].join("; ")
+
 		const securityHeaders = [
 			{
 				key: "Content-Security-Policy",
-				value: [
-					"default-src 'self'",
-					"base-uri 'self'",
-					"object-src 'none'",
-					"frame-ancestors 'none'",
-					"form-action 'self'",
-					"script-src 'self' 'unsafe-inline' https://cdn.onesignal.com",
-					"style-src 'self' 'unsafe-inline'",
-					"img-src 'self' data: blob: https://*.public.blob.vercel-storage.com https://*.googleusercontent.com https://*.onesignal.com",
-					"font-src 'self' data:",
-					"connect-src 'self' https://accounts.google.com https://*.onesignal.com",
-					"frame-src 'self' https://accounts.google.com https://*.onesignal.com",
-				].join("; "),
+				value: oneSignalCsp,
 			},
 			{ key: "X-Content-Type-Options", value: "nosniff" },
 			{ key: "X-Frame-Options", value: "DENY" },
@@ -38,7 +42,38 @@ const nextConfig: NextConfig = {
 				: []),
 		]
 
-		return [{ source: "/(.*)", headers: securityHeaders }]
+		const serviceWorkerHeaders = [
+			{
+				key: "Content-Type",
+				value: "application/javascript; charset=utf-8",
+			},
+			{ key: "Service-Worker-Allowed", value: "/" },
+			{
+				key: "Cache-Control",
+				value: "public, max-age=0, must-revalidate",
+			},
+			{
+				key: "Content-Security-Policy",
+				value: [
+					"default-src 'self'",
+					"script-src 'self' https://cdn.onesignal.com",
+					"connect-src 'self' https://onesignal.com https://*.onesignal.com https://onesignal.os.tc",
+					"img-src 'self' data: https://onesignal.com https://*.onesignal.com",
+				].join("; "),
+			},
+		]
+
+		return [
+			{
+				source: "/OneSignalSDKWorker.js",
+				headers: serviceWorkerHeaders,
+			},
+			{
+				source: "/OneSignalSDKUpdaterWorker.js",
+				headers: serviceWorkerHeaders,
+			},
+			{ source: "/(.*)", headers: securityHeaders },
+		]
 	},
 	images: {
 		unoptimized: true,
