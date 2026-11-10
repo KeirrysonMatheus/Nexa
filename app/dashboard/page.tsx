@@ -20,7 +20,6 @@ const PostsSkeleton = () => (
 
 
 export default function Dashboard() {
-  window.Notification.permission === "granted" || window.Notification.requestPermission()
   return (
     <div className="relative min-h-dvh w-full pb-20 md:pb-8">
       <div
