@@ -7,7 +7,7 @@ const Logo = () => {
         src="/logo.png"
         width={50}
         height={50}
-        priority
+        unoptimized
         alt="Nexa Logo"
         className="max-h-14"
       />

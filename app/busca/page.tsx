@@ -46,6 +46,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                     >
                       {user.image ? (
                         <Image
+                        unoptimized
                           src={user.image}
                           alt={`Avatar de ${user.name}`}
                           width={44}

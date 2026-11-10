@@ -27,6 +27,7 @@ export default function SignupPage() {
             width={36}
             height={36}
             alt=""
+            unoptimized
             priority
             className="size-9 rounded-md object-contain"
           />
@@ -66,6 +67,7 @@ export default function SignupPage() {
               width={48}
               height={48}
               alt=""
+              unoptimized
               className="size-12 rounded-xl object-contain shadow-sm"
             />
             <div>

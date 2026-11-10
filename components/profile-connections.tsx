@@ -32,6 +32,7 @@ function ConnectionList({ users }: { users: ProfileConnection[] }) {
         >
           {connection.image ? (
             <Image
+            unoptimized
               src={connection.image}
               alt={`Avatar de ${connection.name}`}
               width={40}

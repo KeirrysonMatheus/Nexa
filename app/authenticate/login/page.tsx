@@ -29,7 +29,8 @@ export default function LoginPage() {
             width={36}
             height={36}
             alt=""
-            priority
+            
+            unoptimized
             className="size-9 rounded-md object-contain"
           />
           <span className="text-lg font-semibold tracking-tight">Nexa.</span>
@@ -68,6 +69,7 @@ export default function LoginPage() {
               width={48}
               height={48}
               alt=""
+              unoptimized
               className="size-12 rounded-xl object-contain shadow-sm"
             />
             <div>

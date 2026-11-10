@@ -50,8 +50,8 @@ export function UserProfile({
               <Image
                 src={user.image}
                 alt={`Avatar de ${user.name}`}
-                fill
-                priority
+                fill 
+                unoptimized
                 className="object-cover"
               />
             </div>

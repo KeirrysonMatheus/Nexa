@@ -18,6 +18,7 @@ export type FeedPost = {
     image: string | null
     user_apelido: string
     jaSeguindo: boolean
+    isOwnPost: boolean
   }
 }
 
