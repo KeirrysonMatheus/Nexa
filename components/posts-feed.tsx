@@ -101,18 +101,7 @@ export function PostsFeed({
   return (
     <div className="flex w-full flex-col gap-4">
       {posts.map((post) => (
-        <PostCard
-          key={post.post_id}
-          post_id={post.post_id}
-          post_titulo={post.post_titulo}
-          post_conteudo={post.post_conteudo}
-          post_image_url={post.post_image_url}
-          post_data={new Date(post.post_data)}
-          post_ncurtidas={post.post_ncurtidas}
-          curtidas={post.curtidas}
-          user={post.user}
-          likedByCurrentUser={post.likedByCurrentUser}
-        />
+        <PostCard key={post.post_id} post={post} />
       ))}
 
       <div ref={sentinelRef} className="flex min-h-10 items-center justify-center py-2">

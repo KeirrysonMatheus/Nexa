@@ -1,3 +1,15 @@
+export type UserPublicProfile = {
+  id: string
+  name: string
+  image: string | null
+  user_apelido: string
+}
+
+export type FeedPostAuthor = UserPublicProfile & {
+  jaSeguindo: boolean
+  isOwnPost: boolean
+}
+
 export type FeedPost = {
   post_id: string
   post_titulo: string
@@ -6,20 +18,8 @@ export type FeedPost = {
   post_data: string
   post_ncurtidas: number
   likedByCurrentUser: boolean
-  curtidas: {
-    id: string
-    name: string
-    image: string | null
-    user_apelido: string
-  }[]
-  user: {
-    id: string
-    name: string
-    image: string | null
-    user_apelido: string
-    jaSeguindo: boolean
-    isOwnPost: boolean
-  }
+  curtidas: UserPublicProfile[]
+  user: FeedPostAuthor
 }
 
 export type PostsPage = {
@@ -27,3 +27,7 @@ export type PostsPage = {
   nextCursor: string | null
   hasMore: boolean
 }
+
+export type ActionResult =
+  | { success: true }
+  | { success: false; error: string }
