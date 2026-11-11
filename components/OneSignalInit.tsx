@@ -49,7 +49,8 @@ export default function OneSignalInit() {
 
     initialization.current ??= OneSignal.init({
       appId,
-      serviceWorkerPath: "OneSignalSDKWorker.js",
+      serviceWorkerPath: "/OneSignalSDKWorker.js",
+      serviceWorkerUpdaterPath: "/OneSignalSDKUpdaterWorker.js",
       serviceWorkerParam: { scope: "/" },
       notifyButton: {
         enable: true,
@@ -80,6 +81,9 @@ export default function OneSignalInit() {
       .then(async () => {
         if (session?.user?.id) {
           await OneSignal.login(session.user.id);
+          if ("Notification" in window && Notification.permission === "granted") {
+            await OneSignal.User.PushSubscription.optIn();
+          }
           await syncPushSubscription();
 
           if (!subscriptionListenerRegistered.current) {
