@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { EditProfileForm } from "@/components/edit-profile-form"
 import { ProfileConnections } from "@/components/profile-connections"
 import type { ProfileConnection } from "@/actions/users"
+import { formatMemberSince } from "@/lib/format-date"
 
 type UserProfileProps = {
   user: {
@@ -32,10 +33,7 @@ export function UserProfile({
   connections: { followers: ProfileConnection[]; following: ProfileConnection[] }
 }) {
   const [editing, setEditing] = useState(false)
-  const memberSince = new Date(user.createdAt).toLocaleDateString("pt-BR", {
-    month: "long",
-    year: "numeric",
-  })
+  const memberSince = formatMemberSince(user.createdAt)
 
   return (
     <section className="overflow-hidden rounded-2xl border border-border/70 bg-card/90 shadow-sm">

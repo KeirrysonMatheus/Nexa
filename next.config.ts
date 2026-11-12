@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
 			"object-src 'none'",
 			"frame-ancestors 'none'",
 			"form-action 'self'",
-			"script-src 'self' 'unsafe-inline' https://cdn.onesignal.com https://*.onesignal.com",
+			"script-src 'self' 'unsafe-inline' https://cdn.onesignal.com https://*.onesignal.com https://vercel.live",
 			"worker-src 'self' https://cdn.onesignal.com https://*.onesignal.com blob:",
 			"child-src 'self' https://cdn.onesignal.com https://*.onesignal.com blob:",
 			"style-src 'self' 'unsafe-inline' https://onesignal.com https://*.onesignal.com",

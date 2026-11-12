@@ -14,20 +14,10 @@ import { DeleteButton } from "@/components/delete-button"
 import { LikeButton } from "@/components/like-button"
 import { LikesDialog } from "@/components/likes-dialog"
 import type { FeedPost } from "@/types/post"
+import { formatPostDate } from "@/lib/format-date"
 
 type PostCardProps = {
   post: FeedPost
-}
-
-function formatPostDate(isoDate: string) {
-  const date = new Date(isoDate)
-  if (Number.isNaN(date.getTime())) return "Data indisponível"
-
-  return date.toLocaleDateString("pt-BR", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  })
 }
 
 const PostCard = ({ post }: PostCardProps) => {
