@@ -9,8 +9,18 @@ type OneSignalNotification = {
   idempotencyKey: string
 }
 
-function getOneSignalAppId() {
-  return process.env.ONESIGNAL_APP_ID ?? process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID
+type OneSignalResponse = {
+  id?: string
+  recipients?: number
+  errors?: unknown
+  [key: string]: unknown
+}
+
+function hasOneSignalErrors(errors: unknown) {
+  if (errors == null) return false
+  if (Array.isArray(errors)) return errors.length > 0
+  if (typeof errors === "object") return Object.keys(errors).length > 0
+  return Boolean(errors)
 }
 
 export async function sendOneSignalNotification({
@@ -20,17 +30,21 @@ export async function sendOneSignalNotification({
   url,
   idempotencyKey,
 }: OneSignalNotification) {
-  const appId = getOneSignalAppId()
+  const appId = process.env.ONESIGNAL_APP_ID
   const apiKey = process.env.ONESIGNAL_REST_API_KEY
 
   if (!appId || !apiKey) {
-    throw new Error(
-      "OneSignal push is not configured: ONESIGNAL_APP_ID (or NEXT_PUBLIC_ONESIGNAL_APP_ID) and ONESIGNAL_REST_API_KEY are required.",
+    console.error(
+      "OneSignal push is not configured. Set ONESIGNAL_APP_ID and ONESIGNAL_REST_API_KEY in the deployment environment.",
     )
+    return null
   }
 
   const recipients = [...new Set(externalIds)].filter(Boolean)
-  if (recipients.length === 0) return
+  if (recipients.length === 0) {
+    console.error("OneSignal push skipped: no external IDs were provided.")
+    return null
+  }
 
   const appUrl = process.env.NEXT_PUBLIC_URL
   const notificationUrl = url && appUrl ? new URL(url, appUrl).toString() : undefined
@@ -52,20 +66,35 @@ export async function sendOneSignalNotification({
     }),
   })
 
-  const responseBody = await response.text()
-  let parsed: { id?: string; errors?: unknown } | null = null
-  try {
-    parsed = JSON.parse(responseBody) as { id?: string; errors?: unknown }
-  } catch {
-    parsed = null
+  const data = (await response.json().catch(() => null)) as OneSignalResponse | null
+
+  if (!response.ok) {
+    console.error("OneSignal HTTP error", response.status, data)
+    return data
   }
 
-  const softErrors = Array.isArray(parsed?.errors) ? parsed.errors : []
-  if (!response.ok || softErrors.length > 0) {
-    throw new Error(
-      `OneSignal rejected the notification (${response.status}): ${responseBody}`,
-    )
+  if (hasOneSignalErrors(data?.errors)) {
+    console.error("OneSignal returned errors:", {
+      status: response.status,
+      body: data,
+      recipients: data?.recipients,
+      id: data?.id,
+    })
+    return data
   }
+
+  if (data?.recipients === 0) {
+    console.error("OneSignal returned no recipients:", {
+      status: response.status,
+      body: data,
+      recipients: data.recipients,
+      id: data.id,
+    })
+  } else {
+    console.info("OneSignal queued:", data?.id, "recipients:", data?.recipients)
+  }
+
+  return data
 }
 
 /** Keeps the Vercel/serverless invocation alive until the push request finishes. */

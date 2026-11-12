@@ -34,7 +34,6 @@ model user {
 
   notificationsReceived notification[] @relation("NotificationRecipient")
 
-  pushSubscriptions push_subscription[]
 }
 
 model account {
@@ -154,18 +153,4 @@ model notification {
 
   @@index([recipient_id, createdAt])
   @@index([recipient_id, readAt])
-}
-
-model push_subscription {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id   String   @db.Uuid
-  endpoint  String   @unique @db.VarChar(512)
-  p256dh    String   @db.VarChar(255)
-  auth      String   @db.VarChar(255)
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime @updatedAt @db.Timestamptz(6)
-
-  user user @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@index([user_id])
 }
