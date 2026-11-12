@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
 			"style-src 'self' 'unsafe-inline' https://onesignal.com",
 			"img-src 'self' data: blob: https://*.public.blob.vercel-storage.com https://*.googleusercontent.com https://onesignal.com https://*.onesignal.com",
 			"font-src 'self' data:",
-			"connect-src 'self' https://accounts.google.com https://onesignal.com https://*.onesignal.com https://onesignal.os.tc",
+			"connect-src 'self' https://accounts.google.com https://onesignal.com https://*.onesignal.com https://*.os.tc",
 			"frame-src 'self' https://accounts.google.com https://onesignal.com https://*.onesignal.com",
 		].join("; ")
 
@@ -57,7 +57,7 @@ const nextConfig: NextConfig = {
 				value: [
 					"default-src 'self'",
 					"script-src 'self' https://cdn.onesignal.com",
-					"connect-src 'self' https://onesignal.com https://*.onesignal.com https://onesignal.os.tc",
+					"connect-src 'self' https://onesignal.com https://*.onesignal.com https://*.os.tc",
 					"img-src 'self' data: https://onesignal.com https://*.onesignal.com",
 				].join("; "),
 			},
