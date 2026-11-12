@@ -1,4 +1,5 @@
 import { Suspense } from "react"
+import OneSignalInit from "@/components/OneSignalInit"
 import MobileNavBar from "@/components/mobile-navbar"
 import Header from "@/components/header"
 import { Posts } from "@/components/posts"
@@ -22,6 +23,7 @@ const PostsSkeleton = () => (
 export default function Dashboard() {
   return (
     <div className="relative min-h-dvh w-full pb-20 md:pb-8">
+      <OneSignalInit />
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,oklch(0.96_0.015_264)_0%,transparent_50%),radial-gradient(ellipse_at_bottom_right,oklch(0.95_0.02_230)_0%,transparent_45%)] dark:bg-[radial-gradient(ellipse_at_top,oklch(0.26_0.03_264)_0%,transparent_55%),radial-gradient(ellipse_at_bottom_right,oklch(0.24_0.025_230)_0%,transparent_50%)]"
