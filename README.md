@@ -38,6 +38,15 @@ npm install
 npm run dev
 ```
 
+## Domínios de autenticação
+
+Configure a URL pública correspondente ao ambiente onde o deploy foi realizado:
+
+- **Staging:** `app-nexa-dev.vercel.app`
+- **Produção:** `app-nexa-social.vercel.app`
+
+Use `BETTER_AUTH_URL`, `NEXT_PUBLIC_URL` e `NEXT_PUBLIC_APP_URL` com o mesmo domínio HTTPS do ambiente. O cliente de autenticação usa a origem atual do site, portanto não deve apontar fixamente para o domínio de produção em staging.
+
 ## Notificações web push em produção
 
 A entrega de push usa o OneSignal, não a tabela local `push_subscription`. Antes do deploy, configure no provedor de hospedagem:
