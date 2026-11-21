@@ -8,8 +8,17 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-## Task Branch Workflow
+## GitHub Flow and Environment Promotion
 
-For every request, create a dedicated branch for the task, implement and validate the changes there, commit the completed work, and merge that branch into `main` before finishing.
+Use GitHub Flow for every request:
+
+1. Create a dedicated short-lived branch from `staging`.
+2. Implement the correction or feature on that branch and add focused validation.
+3. Open a pull request targeting `staging`, validate the change in the staging environment, and merge it only after testing passes.
+4. Open a pull request from `staging` to `main` (production) only after the staging deployment has been validated.
+5. Merge to `main` and verify the production deployment.
+6. Delete the completed feature branch after it is merged.
+
+Never merge a correction or feature directly into `main`. All changes must pass through `staging` first.
 
 ## Give max priority for security of the system

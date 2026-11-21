@@ -6,7 +6,19 @@ import { createAuthMiddleware, APIError } from "better-auth/api";
 
 const googleClientId = process.env.GOOGLE_CLIENT_ID?.trim()
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim()
-const trustedOrigins = [process.env.BETTER_AUTH_URL, process.env.NEXT_PUBLIC_URL, process.env.NEXT_PUBLIC_APP_URL]
+const trustedOrigins = [
+    process.env.BETTER_AUTH_URL,
+    process.env.NEXT_PUBLIC_URL,
+    process.env.NEXT_PUBLIC_APP_URL,
+]
+    .filter((origin): origin is string => Boolean(origin))
+    .map((origin) => {
+        try {
+            return new URL(origin).origin
+        } catch {
+            return null
+        }
+    })
     .filter((origin): origin is string => Boolean(origin))
 
 async function createSocialNickname(email: string) {
